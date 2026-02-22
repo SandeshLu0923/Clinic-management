@@ -128,7 +128,7 @@ sudo apt-get install -y nodejs
 sudo npm install -g pm2
 
 # 4. Clone repository
-git clone https://github.com/your-repo/clinic-management.git
+git clone https://github.com/SandeshLu0923/clinic-management.git
 cd clinic-management/backend
 
 # 5. Install dependencies

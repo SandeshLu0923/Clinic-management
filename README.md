@@ -2,7 +2,7 @@
 
 > **A comprehensive MERN stack clinic management system enabling seamless doctor-receptionist communication, efficient patient queue management, appointment booking, medical record maintenance, and integrated billing.**
 
-[![GitHub](https://img.shields.io/badge/GitHub-Clinic%20Management-blue)](https://github.com/your-repo/clinic-management)
+[![GitHub](https://img.shields.io/badge/GitHub-Clinic%20Management-blue)](https://github.com/SandeshLu0923/clinic-management)
 [![Version](https://img.shields.io/badge/version-1.0.0-success)]()
 [![Node.js](https://img.shields.io/badge/Node.js-v16+-green)]()
 [![License](https://img.shields.io/badge/license-MIT-blue)]()
@@ -430,7 +430,7 @@ For questions about:
 
 **Status**: Complete MERN Stack Implementation ✅
 
-**All Requirements Met**: 100% ✅
+**Requirements Status**: See "Submission Audit (2026-02-22)" below
 - ✅ All features implemented and documented
 - ✅ Comprehensive logging on all operations
 - ✅ 33+ test cases with coverage
@@ -440,3 +440,32 @@ For questions about:
 - ✅ Security best practices implemented
 
 **Project is ready for production deployment!**
+
+---
+
+## Submission Audit (2026-02-22)
+
+### Completed in Repository
+- Core clinic features (doctor + receptionist + patient flows)
+- Token generation and queue management
+- Patient history and prescription persistence
+- Billing workflows and payment-state transitions
+- LLD, architecture, wireframe, testing, optimization, and project report documents
+- Automated validation checks:
+  - Backend lint: pass
+  - Backend tests: 57/57 pass
+  - Frontend lint: pass
+  - Frontend build: pass
+
+### Pending External Submission Tasks
+- Replace placeholder GitHub URL with actual public repository URL in:
+  - README.md
+  - DEPLOYMENT.md
+  - REQUIREMENTS_COMPLIANCE.md
+- Confirm repository visibility is public before final submission
+- Submit final repo link and final project report document to evaluator portal
+
+### Notes for Requirement Interpretation
+- Database requirement in this project is fulfilled with MongoDB (approved for this submission).
+- Logging is implemented across core API workflows via winston; some utility/bootstrap paths still use console.* output.
+

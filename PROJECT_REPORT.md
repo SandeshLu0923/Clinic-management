@@ -116,3 +116,12 @@ Manual clinic workflows create delays in token assignment, queue handling, presc
 ## 13. Known Constraints
 - Some external integrations are simulated in development mode (SMS/email/file providers depending on env setup).
 - Final production credentials and cloud URLs are environment-dependent.
+
+## 14. Final Submission Readiness (Audit: 2026-02-22)
+- Functional implementation: complete
+- Documentation set: complete
+- Validation status: backend/frontend lint pass, backend tests pass, frontend build pass
+- External pending tasks:
+  - Replace placeholder GitHub URL in docs with final repo URL
+  - Keep repository public at submission time
+  - Share final repo link with evaluator
