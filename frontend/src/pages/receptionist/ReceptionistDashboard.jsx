@@ -450,27 +450,29 @@ const ReceptionistDashboard = () => {
         <Card className="col-span-2">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Current Queue</h2>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="px-4 py-2 border rounded"
-            />
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setSelectedDate('')}
-                className="px-3 py-2 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-              >
-                Clear Date
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedDate(getTodayDate())}
-                className="px-3 py-2 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-              >
-                Today
-              </button>
+            <div className="flex flex-col items-end gap-2">
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="px-4 py-2 border rounded"
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedDate('')}
+                  className="px-3 py-2 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                >
+                  Clear Date
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDate(getTodayDate())}
+                  className="px-3 py-2 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                >
+                  Today
+                </button>
+              </div>
             </div>
           </div>
           <div className="overflow-x-auto">
