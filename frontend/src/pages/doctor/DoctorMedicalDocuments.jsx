@@ -46,15 +46,22 @@ const DoctorMedicalDocuments = () => {
       minute: '2-digit',
     });
 
-  const groupedByPatient = useMemo(() => {
-    const grouped = {};
-    documents.forEach((doc) => {
-      const patientName = doc.userId?.name || 'Unknown Patient';
-      if (!grouped[patientName]) grouped[patientName] = [];
-      grouped[patientName].push(doc);
-    });
-    return grouped;
+  const sortedDocuments = useMemo(() => {
+    return [...documents].sort(
+      (a, b) => new Date(b.uploadedAt || b.createdAt) - new Date(a.uploadedAt || a.createdAt)
+    );
   }, [documents]);
+
+  const getDocumentUrl = (doc) => {
+    const filePath = doc?.fileUrl || '';
+    return encodeURI(`${fileBaseUrl}${filePath}`);
+  };
+
+  const isPdfDocument = (doc) => {
+    const fileUrl = String(doc?.fileUrl || '').toLowerCase();
+    const fileName = String(doc?.fileName || '').toLowerCase();
+    return fileUrl.includes('.pdf') || fileName.endsWith('.pdf');
+  };
 
   const closePreview = () => {
     setShowPreview(false);
@@ -89,49 +96,63 @@ const DoctorMedicalDocuments = () => {
           <p className="text-gray-500">Patients will share their medical documents with you here</p>
         </div>
       ) : (
-        Object.entries(groupedByPatient).map(([patientName, patientDocs]) => (
-          <div key={patientName} className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">{patientName}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {patientDocs.map((doc) => (
-                <div key={doc._id} className="bg-white rounded-lg border border-gray-200 p-5 hover:shadow-lg transition">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 truncate">{doc.fileName}</h3>
-                      <p className="text-sm font-medium text-blue-600">{doc.documentType}</p>
-                    </div>
-                  </div>
-
-                  {doc.description && <p className="text-sm text-gray-600 mb-3 line-clamp-2">{doc.description}</p>}
-                  <div className="text-xs text-gray-500 mb-4">
-                    <p>Uploaded: {formatDate(doc.uploadedAt)}</p>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        setSelectedDoc(doc);
-                        setShowPreview(true);
-                      }}
-                      className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition text-sm"
-                    >
-                      <FiEye size={16} />
-                      View
-                    </button>
-                    <a
-                      href={`${fileBaseUrl}${doc.fileUrl}`}
-                      download
-                      className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition text-sm"
-                    >
-                      <FiDownload size={16} />
-                      Download
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead className="bg-gray-100 border-b border-gray-200">
+                <tr>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-800">Patient</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-800">File Name</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-800">Type</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-800">Description</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-800">Uploaded</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-800">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedDocuments.map((doc) => (
+                  <tr key={doc._id} className="border-b border-gray-200 hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
+                      {doc.userId?.name || 'Unknown Patient'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">{doc.fileName}</td>
+                    <td className="px-4 py-3 text-sm text-blue-700 capitalize whitespace-nowrap">
+                      {doc.documentType || 'N/A'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-700 max-w-xs truncate">
+                      {doc.description || 'N/A'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                      {formatDate(doc.uploadedAt)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            setSelectedDoc(doc);
+                            setShowPreview(true);
+                          }}
+                          className="inline-flex items-center gap-1 bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 transition text-sm"
+                        >
+                          <FiEye size={14} />
+                          View
+                        </button>
+                        <a
+                          href={getDocumentUrl(doc)}
+                          download
+                          className="inline-flex items-center gap-1 bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700 transition text-sm"
+                        >
+                          <FiDownload size={14} />
+                          Download
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ))
+        </div>
       )}
 
       {showPreview && selectedDoc && (
@@ -150,18 +171,34 @@ const DoctorMedicalDocuments = () => {
             </div>
 
             <div className="flex-1 overflow-auto p-6">
-              {selectedDoc.fileUrl.toLowerCase().endsWith('.pdf') ? (
-                <iframe src={`${fileBaseUrl}${selectedDoc.fileUrl}`} className="w-full h-full rounded-lg" title="PDF Preview" />
+              {isPdfDocument(selectedDoc) ? (
+                <object
+                  data={getDocumentUrl(selectedDoc)}
+                  type="application/pdf"
+                  className="w-full min-h-[60vh] rounded-lg border"
+                >
+                  <div className="text-center py-8 px-4 text-sm text-gray-600">
+                    PDF preview is unavailable in this browser.
+                    <a
+                      href={getDocumentUrl(selectedDoc)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="ml-2 text-blue-600 underline"
+                    >
+                      Open in new tab
+                    </a>
+                  </div>
+                </object>
               ) : (
                 <div className="text-center">
-                  <img src={`${fileBaseUrl}${selectedDoc.fileUrl}`} alt="Document Preview" className="max-w-full max-h-full mx-auto rounded-lg" />
+                  <img src={getDocumentUrl(selectedDoc)} alt="Document Preview" className="max-w-full max-h-[60vh] mx-auto rounded-lg" />
                 </div>
               )}
             </div>
 
             <div className="p-6 border-t border-gray-200 flex gap-3">
               <a
-                href={`${fileBaseUrl}${selectedDoc.fileUrl}`}
+                href={getDocumentUrl(selectedDoc)}
                 download
                 className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
               >

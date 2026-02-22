@@ -229,7 +229,7 @@ The Clinic Management System successfully digitizes key clinic operations and re
 
 ### 6.2 Future Scope
 - Payment gateway integration for online transactions
-- SMS/WhatsApp notification automation for appointment/token updates
+- SMS/WhatsApp notification automation for appointment/token updatese
 - Diagnostic image and report lifecycle extension (advanced storage and viewer)
 - Audit dashboard for operational KPIs and compliance reporting
 - Advanced analytics for doctor utilization and patient wait-time optimization

@@ -308,7 +308,7 @@ exports.payBilling = async (req, res, next) => {
       await Queue.findOneAndDelete({ appointmentId: billing.appointmentId });
       await Appointment.findByIdAndUpdate(
         billing.appointmentId,
-        { status: 'completed', queueToken: null, queuePosition: null, updatedAt: new Date() },
+        { status: 'completed', queuePosition: null, updatedAt: new Date() },
         { new: true }
       );
     }

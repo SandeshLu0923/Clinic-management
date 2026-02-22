@@ -215,28 +215,28 @@ const DoctorDashboard = () => {
   return (
     <div className="p-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <Card>
-              <h2 className="text-lg font-semibold mb-2">Today's Appointments</h2>
-              <p className="text-sm text-gray-500 mb-1">Scheduled</p>
-              <p className="text-3xl font-bold text-blue-500">{stats.appointments}</p>
+            <Card className="smart-card">
+              <h2 className="smart-card-title mb-1">Today's Appointments</h2>
+              <p className="smart-card-meta mb-1">Scheduled</p>
+              <p className="smart-card-value text-blue-500">{stats.appointments}</p>
             </Card>
 
-            <Card>
-              <h2 className="text-lg font-semibold mb-2">Today's Walk-ins</h2>
-              <p className="text-sm text-gray-500 mb-1">Registered</p>
-              <p className="text-3xl font-bold text-purple-500">{stats.walkIns}</p>
+            <Card className="smart-card">
+              <h2 className="smart-card-title mb-1">Today's Walk-ins</h2>
+              <p className="smart-card-meta mb-1">Registered</p>
+              <p className="smart-card-value text-purple-500">{stats.walkIns}</p>
             </Card>
 
-            <Card>
-              <h2 className="text-lg font-semibold mb-2">Pending Queue</h2>
-              <p className="text-sm text-gray-500 mb-1">Waiting Now</p>
-              <p className="text-3xl font-bold text-amber-500">{stats.pending}</p>
+            <Card className="smart-card">
+              <h2 className="smart-card-title mb-1">Pending Queue</h2>
+              <p className="smart-card-meta mb-1">Waiting Now</p>
+              <p className="smart-card-value text-amber-500">{stats.pending}</p>
             </Card>
 
-            <Card>
-              <h2 className="text-lg font-semibold mb-2">Completed</h2>
-              <p className="text-sm text-gray-500 mb-1">Patients Seen</p>
-              <p className="text-3xl font-bold text-green-500">{stats.completed}</p>
+            <Card className="smart-card">
+              <h2 className="smart-card-title mb-1">Completed</h2>
+              <p className="smart-card-meta mb-1">Patients Seen</p>
+              <p className="smart-card-value text-green-500">{stats.completed}</p>
             </Card>
           </div>
 

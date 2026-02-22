@@ -17,7 +17,7 @@ const ReceptionistBilling = () => {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all'); // all, paid, pending
-  const [selectedDate, setSelectedDate] = useState(getTodayDate());
+  const [selectedDate, setSelectedDate] = useState('');
   const [showReceipt, setShowReceipt] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const formatCurrency = (amount) => `INR ${Number(amount || 0).toLocaleString('en-IN')}`;
@@ -48,8 +48,8 @@ const ReceptionistBilling = () => {
         setLoading(true);
       }
       setError('');
-      const reportDate = isValidDateInput(selectedDate) ? selectedDate : getTodayDate();
-      const res = await receptionistAPI.getBillings({ date: reportDate });
+      const params = isValidDateInput(selectedDate) ? { date: selectedDate } : {};
+      const res = await receptionistAPI.getBillings(params);
       const billings = res.data.data || [];
       
       // Format billing data
@@ -67,7 +67,7 @@ const ReceptionistBilling = () => {
         paymentMethod: toDisplayPaymentMethod(billing.paymentMethod),
         status: billing.paymentStatus === 'paid' ? 'completed' : (billing.status || 'pending'),
         paymentStatus: billing.paymentStatus || 'pending',
-        date: billing.billDate ? billing.billDate.split('T')[0] : selectedDate,
+        date: billing.billDate ? billing.billDate.split('T')[0] : 'N/A',
         processedBy: billing.processedBy?.name || 'N/A',
         description: billing.description || ''
       }));
@@ -180,16 +180,16 @@ const ReceptionistBilling = () => {
           body { font-family: Arial, sans-serif; margin: 20px; }
           .receipt { max-width: 600px; margin: 0 auto; border: 1px solid #ddd; padding: 20px; }
           .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; }
-          .header h1 { margin: 0; font-size: 24px; }
+          .header h1 { margin: 0; font-size: 20px; }
           .details { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
-          .detail-item { font-size: 14px; }
+          .detail-item { font-size: 12px; }
           .label { font-weight: bold; color: #666; }
           .table { width: 100%; margin: 20px 0; border-collapse: collapse; }
-          .table th, .table td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+          .table th, .table td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; font-size: 12px; }
           .table th { background: #f5f5f5; font-weight: bold; }
           .total-section { margin: 20px 0; text-align: right; }
-          .total-row { font-size: 18px; font-weight: bold; margin-top: 10px; }
-          .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+          .total-row { font-size: 16px; font-weight: bold; margin-top: 10px; }
+          .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 11px; }
           .print-button { text-align: center; margin: 20px 0; }
           button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
           @media print { .print-button { display: none; } }
@@ -271,42 +271,42 @@ const ReceptionistBilling = () => {
         {/* Smart Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 w-full">
           {/* Total Income Today */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="smart-card p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm font-semibold">Total Income Today</p>
-                <p className="text-4xl font-bold text-green-600 mt-2">{formatCurrency(totalIncomeToday)}</p>
-                <p className="text-gray-500 text-xs mt-2">{totalCompletedCount} completed transactions</p>
+                <p className="smart-card-title">Total Income Today</p>
+                <p className="smart-card-value text-green-600 mt-1">{formatCurrency(totalIncomeToday)}</p>
+                <p className="smart-card-meta mt-1">{totalCompletedCount} completed transactions</p>
               </div>
-              <div className="text-green-600 text-4xl opacity-20">
+              <div className="smart-card-icon text-green-600">
                 <FiDollarSign />
               </div>
             </div>
           </div>
 
           {/* Pending Transactions */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="smart-card p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm font-semibold">Pending Transactions</p>
-                <p className="text-4xl font-bold text-red-600 mt-2">{totalPendingCount}</p>
-                <p className="text-gray-500 text-xs mt-2">Awaiting payment: {formatCurrency(totalPendingAmount)}</p>
+                <p className="smart-card-title">Pending Transactions</p>
+                <p className="smart-card-value text-red-600 mt-1">{totalPendingCount}</p>
+                <p className="smart-card-meta mt-1">Awaiting payment: {formatCurrency(totalPendingAmount)}</p>
               </div>
-              <div className="text-red-600 text-4xl opacity-20">
+              <div className="smart-card-icon text-red-600">
                 <FiClock />
               </div>
             </div>
           </div>
 
           {/* Total Transactions (Completed) */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="smart-card p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm font-semibold">Total Transactions</p>
-                <p className="text-4xl font-bold text-blue-600 mt-2">{totalCompletedCount}</p>
-                <p className="text-gray-500 text-xs mt-2">Completed today</p>
+                <p className="smart-card-title">Total Transactions</p>
+                <p className="smart-card-value text-blue-600 mt-1">{totalCompletedCount}</p>
+                <p className="smart-card-meta mt-1">Completed today</p>
               </div>
-              <div className="text-blue-600 text-4xl opacity-20">
+              <div className="smart-card-icon text-blue-600">
                 <FiCheckCircle />
               </div>
             </div>
@@ -334,9 +334,25 @@ const ReceptionistBilling = () => {
               <input
                 type="date"
                 value={selectedDate}
-                onChange={(e) => setSelectedDate(isValidDateInput(e.target.value) ? e.target.value : getTodayDate())}
+                onChange={(e) => setSelectedDate(e.target.value)}
                 className="w-full px-3 py-2 border rounded focus:outline-none focus:border-blue-500"
               />
+              <div className="flex gap-2 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedDate('')}
+                  className="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                >
+                  Clear Date
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDate(getTodayDate())}
+                  className="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                >
+                  Today
+                </button>
+              </div>
             </div>
 
             {/* Status Filter */}
@@ -436,10 +452,10 @@ const ReceptionistBilling = () => {
             role="dialog"
             aria-modal="true"
             aria-labelledby="receipt-modal-title"
-            className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-96 overflow-y-auto"
+            className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[82vh] overflow-y-auto"
           >
             <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
-              <h2 id="receipt-modal-title" className="text-2xl font-bold">Invoice {selectedTransaction.invoiceId}</h2>
+              <h2 id="receipt-modal-title" className="text-xl font-bold">Invoice {selectedTransaction.invoiceId}</h2>
               <button
                 type="button"
                 aria-label="Close receipt modal"
@@ -453,27 +469,27 @@ const ReceptionistBilling = () => {
             <div className="p-6 space-y-6">
               {/* Header */}
               <div className="text-center border-b pb-4">
-                <h1 className="text-2xl font-bold">INVOICE</h1>
-                <p className="text-gray-600">{selectedTransaction.invoiceId}</p>
+                <h1 className="text-xl font-bold">INVOICE</h1>
+                <p className="text-sm text-gray-600">{selectedTransaction.invoiceId}</p>
               </div>
 
               {/* Details Grid */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-600 font-semibold">Date</p>
-                  <p className="text-lg">{selectedTransaction.date}</p>
+                  <p className="text-xs text-gray-600 font-semibold">Date</p>
+                  <p className="text-sm">{selectedTransaction.date}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 font-semibold">Status</p>
-                  <p className="text-lg font-semibold text-green-600">{selectedTransaction.status.toUpperCase()}</p>
+                  <p className="text-xs text-gray-600 font-semibold">Status</p>
+                  <p className="text-sm font-semibold text-green-600">{selectedTransaction.status.toUpperCase()}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 font-semibold">Patient</p>
-                  <p className="text-lg">{selectedTransaction.patientName}</p>
+                  <p className="text-xs text-gray-600 font-semibold">Patient</p>
+                  <p className="text-sm">{selectedTransaction.patientName}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 font-semibold">Payment Method</p>
-                  <p className="text-lg">{selectedTransaction.paymentMethod}</p>
+                  <p className="text-xs text-gray-600 font-semibold">Payment Method</p>
+                  <p className="text-sm">{selectedTransaction.paymentMethod}</p>
                 </div>
               </div>
 
@@ -518,8 +534,8 @@ const ReceptionistBilling = () => {
                   <p className="text-gray-600 text-sm">Subtotal: {formatCurrency(selectedTransaction.subtotal)}</p>
                   <p className="text-gray-600 text-sm">Tax: {formatCurrency(selectedTransaction.tax)}</p>
                   <p className="text-gray-600 text-sm">Discount: {formatCurrency(selectedTransaction.discount)}</p>
-                  <p className="text-gray-600 text-sm">Total Amount</p>
-                  <p className="text-3xl font-bold text-green-600">{formatCurrency(selectedTransaction.amount)}</p>
+                  <p className="text-xs text-gray-600">Total Amount</p>
+                  <p className="text-2xl font-bold text-green-600">{formatCurrency(selectedTransaction.amount)}</p>
                 </div>
               </div>
 

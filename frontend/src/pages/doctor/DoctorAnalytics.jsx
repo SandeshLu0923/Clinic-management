@@ -128,29 +128,29 @@ const DoctorAnalytics = () => {
       {error && <div className="p-3 bg-red-100 text-red-700 border border-red-300 rounded">{error}</div>}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Card className="p-6 text-center">
-          <p className="text-gray-600">Total Patients</p>
-          <p className="text-4xl font-bold text-blue-600">{metrics.totalPatients}</p>
+        <Card className="smart-card p-6 text-center">
+          <p className="smart-card-title">Total Patients</p>
+          <p className="smart-card-value text-blue-600">{metrics.totalPatients}</p>
         </Card>
-        <Card className="p-6 text-center">
-          <p className="text-gray-600">Total Appointments</p>
-          <p className="text-4xl font-bold text-green-600">{metrics.totalAppointments}</p>
+        <Card className="smart-card p-6 text-center">
+          <p className="smart-card-title">Total Appointments</p>
+          <p className="smart-card-value text-green-600">{metrics.totalAppointments}</p>
         </Card>
-        <Card className="p-6 text-center">
-          <p className="text-gray-600">Completion Rate</p>
-          <p className="text-4xl font-bold text-purple-600">{metrics.completionRate}%</p>
+        <Card className="smart-card p-6 text-center">
+          <p className="smart-card-title">Completion Rate</p>
+          <p className="smart-card-value text-purple-600">{metrics.completionRate}%</p>
         </Card>
-        <Card className="p-6 text-center">
-          <p className="text-gray-600">Average Rating</p>
-          <p className="text-4xl font-bold text-yellow-600">* {metrics.averageRating}</p>
+        <Card className="smart-card p-6 text-center">
+          <p className="smart-card-title">Average Rating</p>
+          <p className="smart-card-value text-yellow-600">* {metrics.averageRating}</p>
         </Card>
-        <Card className="p-6 text-center">
-          <p className="text-gray-600">Appointments This Month</p>
-          <p className="text-4xl font-bold text-indigo-600">{metrics.appointmentsThisMonth}</p>
+        <Card className="smart-card p-6 text-center">
+          <p className="smart-card-title">Appointments This Month</p>
+          <p className="smart-card-value text-indigo-600">{metrics.appointmentsThisMonth}</p>
         </Card>
-        <Card className="p-6 text-center">
-          <p className="text-gray-600">Active Patients This Month</p>
-          <p className="text-4xl font-bold text-pink-600">{metrics.newPatientsThisMonth}</p>
+        <Card className="smart-card p-6 text-center">
+          <p className="smart-card-title">Active Patients This Month</p>
+          <p className="smart-card-value text-pink-600">{metrics.newPatientsThisMonth}</p>
         </Card>
       </div>
 

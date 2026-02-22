@@ -18,7 +18,7 @@ const getId = (value) => (typeof value === 'string' ? value : value?._id);
 const getTodayDate = () => new Date().toISOString().split('T')[0];
 
 const ReceptionistQueue = () => {
-  const [selectedDate, setSelectedDate] = useState(getTodayDate());
+  const [selectedDate, setSelectedDate] = useState('');
   const [queueList, setQueueList] = useState([]);
   const [walkInAppointments, setWalkInAppointments] = useState([]);
   const [pendingWalkIns, setPendingWalkIns] = useState([]);
@@ -78,7 +78,8 @@ const ReceptionistQueue = () => {
       if (showLoader) {
         setLoading(true);
       }
-      const response = await receptionistAPI.getWalkInQueue({ date: selectedDate });
+      const params = selectedDate ? { date: selectedDate } : {};
+      const response = await receptionistAPI.getWalkInQueue(params);
       const list = (response.data.data || []).sort((a, b) => (a.position || 0) - (b.position || 0));
       setQueueList(list);
       setError('');
@@ -94,7 +95,8 @@ const ReceptionistQueue = () => {
 
   const fetchWalkInAppointments = async () => {
     try {
-      const response = await receptionistAPI.getWalkInAppointments({ date: selectedDate });
+      const params = selectedDate ? { date: selectedDate } : {};
+      const response = await receptionistAPI.getWalkInAppointments(params);
       setWalkInAppointments(response.data.data || []);
     } catch (fetchError) {
       console.error(fetchError);
@@ -494,9 +496,23 @@ const ReceptionistQueue = () => {
         <input
           type="date"
           value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value || getTodayDate())}
+          onChange={(e) => setSelectedDate(e.target.value)}
           className="px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
         />
+        <button
+          type="button"
+          onClick={() => setSelectedDate('')}
+          className="px-3 py-2 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+        >
+          Clear Date
+        </button>
+        <button
+          type="button"
+          onClick={() => setSelectedDate(getTodayDate())}
+          className="px-3 py-2 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+        >
+          Today
+        </button>
         <input
           type="text"
           value={searchToken}
@@ -510,11 +526,11 @@ const ReceptionistQueue = () => {
       </div>
 
       <div className="grid grid-cols-5 gap-4 mb-8">
-        <div className="p-5 bg-white border rounded-lg"><p className="text-sm text-gray-600">Total Walk-ins</p><p className="text-3xl font-bold text-indigo-600 mt-1">{stats.total}</p></div>
-        <div className="p-5 bg-white border rounded-lg"><p className="text-sm text-gray-600">Waiting</p><p className="text-3xl font-bold text-blue-600 mt-1">{stats.waiting}</p></div>
-        <div className="p-5 bg-white border rounded-lg"><p className="text-sm text-gray-600">In Consultation</p><p className="text-3xl font-bold text-amber-600 mt-1">{stats.inConsultation}</p></div>
-        <div className="p-5 bg-white border rounded-lg"><p className="text-sm text-gray-600">Pending Bill</p><p className="text-3xl font-bold text-orange-600 mt-1">{stats.pendingBilling}</p></div>
-        <div className="p-5 bg-white border rounded-lg"><p className="text-sm text-gray-600">Walk-in</p><p className="text-3xl font-bold text-purple-600 mt-1">{stats.walkIn}</p></div>
+        <div className="smart-card p-5"><p className="smart-card-title">Total Walk-ins</p><p className="smart-card-value text-indigo-600 mt-1">{stats.total}</p></div>
+        <div className="smart-card p-5"><p className="smart-card-title">Waiting</p><p className="smart-card-value text-blue-600 mt-1">{stats.waiting}</p></div>
+        <div className="smart-card p-5"><p className="smart-card-title">In Consultation</p><p className="smart-card-value text-amber-600 mt-1">{stats.inConsultation}</p></div>
+        <div className="smart-card p-5"><p className="smart-card-title">Pending Bill</p><p className="smart-card-value text-orange-600 mt-1">{stats.pendingBilling}</p></div>
+        <div className="smart-card p-5"><p className="smart-card-title">Walk-in</p><p className="smart-card-value text-purple-600 mt-1">{stats.walkIn}</p></div>
       </div>
 
       <div className="bg-white border rounded mb-8">
@@ -553,20 +569,20 @@ const ReceptionistQueue = () => {
       </div>
 
       <div className="bg-white border rounded">
-        <div className="grid grid-cols-11 gap-3 p-4 bg-gray-100 border-b font-semibold text-sm">
-          <div>Token</div><div>Type</div><div>Patient</div><div>Doctor</div><div>Appointment ID</div><div>Age</div><div>Gender</div><div>Contact</div><div>Reason</div><div>Status</div><div>Actions</div>
+        <div className="p-4 bg-gray-100 border-b font-semibold text-sm">Walkin-Queue</div>
+        <div className="grid grid-cols-10 gap-3 p-4 bg-gray-100 border-b font-semibold text-sm">
+          <div>Token</div><div>Type</div><div>Patient</div><div>Doctor</div><div>Age</div><div>Gender</div><div>Contact</div><div>Reason</div><div>Status</div><div>Actions</div>
         </div>
 
         {filteredQueue.length === 0 ? (
           <div className="p-8 text-center text-gray-500">No patients in queue</div>
         ) : (
           filteredQueue.map((patient, index) => (
-            <div key={patient._id} className={`grid grid-cols-11 gap-3 p-4 border-b ${index % 2 ? 'bg-gray-50' : 'bg-white'}`}>
+            <div key={patient._id} className={`grid grid-cols-10 gap-3 p-4 border-b ${index % 2 ? 'bg-gray-50' : 'bg-white'}`}>
               <div className="font-semibold">{patient.tokenNumber || 'N/A'}</div>
               <div className="capitalize">{patient.appointmentId?.appointmentType || 'N/A'}</div>
               <div>{patient.patientId?.name || patient.patientId?.userId?.name || 'Unknown'}</div>
               <div>{patient.doctorId?.userId?.name || 'N/A'}</div>
-              <div className="font-mono text-xs text-blue-600">{patient.appointmentId?._id || 'N/A'}</div>
               <div>{patient.patientId?.age || 'N/A'}</div>
               <div className="capitalize">{patient.patientId?.gender || 'N/A'}</div>
               <div>{patient.patientId?.phone || patient.patientId?.userId?.phone || 'N/A'}</div>
@@ -590,16 +606,17 @@ const ReceptionistQueue = () => {
 
       <div className="bg-white border rounded mt-8">
         <div className="p-4 bg-gray-100 border-b font-semibold text-sm">
-          Walk-in Patients List ({selectedDate})
+          Walk-in Patients List {selectedDate ? `(${selectedDate})` : '(All Dates)'}
         </div>
         <div className="grid grid-cols-8 gap-3 p-4 bg-gray-50 border-b font-semibold text-sm">
-          <div>Patient</div><div>Doctor</div><div>Date</div><div>Time</div><div>Reason</div><div>Status</div><div>Consent</div><div>Type</div>
+          <div>Token</div><div>Patient</div><div>Doctor</div><div>Date</div><div>Time</div><div>Reason</div><div>Status</div><div>Actions</div>
         </div>
         {walkInAppointments.length === 0 ? (
           <div className="p-4 text-sm text-gray-500">No walk-in patients found for selected date</div>
         ) : (
           walkInAppointments.map((apt, index) => (
             <div key={apt._id} className={`grid grid-cols-8 gap-3 p-4 border-b text-sm ${index % 2 ? 'bg-gray-50' : 'bg-white'}`}>
+              <div className="font-semibold">{apt.queueToken || 'N/A'}</div>
               <div>{apt.patientId?.name || apt.patientId?.userId?.name || 'Unknown'}</div>
               <div>{apt.doctorId?.userId?.name || 'N/A'}</div>
               <div>{apt.appointmentDate ? new Date(apt.appointmentDate).toLocaleDateString() : 'N/A'}</div>
@@ -618,8 +635,15 @@ const ReceptionistQueue = () => {
                   {formatStatus(apt.status)}
                 </span>
               </div>
-              <div>{apt.medicalRecordConsent ? 'Yes' : 'No'}</div>
-              <div className="capitalize">{apt.appointmentType || 'walk-in'}</div>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => { setSelectedPatient(apt); setShowViewModal(true); }}
+                  className="text-blue-600 hover:underline text-sm"
+                >
+                  View
+                </button>
+              </div>
             </div>
           ))
         )}
@@ -668,7 +692,7 @@ const ReceptionistQueue = () => {
       )}
 
       {showViewModal && selectedPatient && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"><div className="bg-white rounded border max-w-2xl w-full"><div className="p-6 border-b flex justify-between items-center"><h2 className="text-xl font-bold">Patient Details</h2><button type="button" onClick={() => { setShowViewModal(false); setSelectedPatient(null); }} className="text-gray-600 text-xl">X</button></div><div className="p-6 grid grid-cols-2 gap-4 text-sm"><div><strong>Name:</strong> {selectedPatient.patientId?.name || selectedPatient.patientId?.userId?.name || 'N/A'}</div><div><strong>Token:</strong> {selectedPatient.tokenNumber || 'N/A'}</div><div><strong>Email:</strong> {selectedPatient.patientId?.userId?.email || 'N/A'}</div><div><strong>Phone:</strong> {selectedPatient.patientId?.phone || selectedPatient.patientId?.userId?.phone || 'N/A'}</div><div><strong>Age:</strong> {selectedPatient.patientId?.age || 'N/A'}</div><div><strong>Gender:</strong> {selectedPatient.patientId?.gender || 'N/A'}</div><div><strong>Status:</strong> {formatStatus(selectedPatient.status)}</div><div><strong>Doctor:</strong> {selectedPatient.doctorId?.userId?.name || 'N/A'}</div><div className="col-span-2"><strong>Reason:</strong> {selectedPatient.appointmentId?.reason || 'N/A'}</div></div></div></div>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"><div className="bg-white rounded border max-w-2xl w-full"><div className="p-6 border-b flex justify-between items-center"><h2 className="text-xl font-bold">Patient Details</h2><button type="button" onClick={() => { setShowViewModal(false); setSelectedPatient(null); }} className="text-gray-600 text-xl">X</button></div><div className="p-6 grid grid-cols-2 gap-4 text-sm"><div><strong>Name:</strong> {selectedPatient.patientId?.name || selectedPatient.patientId?.userId?.name || 'N/A'}</div><div><strong>Token:</strong> {selectedPatient.tokenNumber || selectedPatient.queueToken || selectedPatient.appointmentId?.queueToken || 'N/A'}</div><div><strong>Email:</strong> {selectedPatient.patientId?.userId?.email || 'N/A'}</div><div><strong>Phone:</strong> {selectedPatient.patientId?.phone || selectedPatient.patientId?.userId?.phone || 'N/A'}</div><div><strong>Age:</strong> {selectedPatient.patientId?.age || 'N/A'}</div><div><strong>Gender:</strong> {selectedPatient.patientId?.gender || 'N/A'}</div><div><strong>Status:</strong> {formatStatus(selectedPatient.status)}</div><div><strong>Doctor:</strong> {selectedPatient.doctorId?.userId?.name || 'N/A'}</div><div className="col-span-2"><strong>Reason:</strong> {selectedPatient.appointmentId?.reason || selectedPatient.reason || 'N/A'}</div></div></div></div>
       )}
 
       {checkInModal && patientToCheckIn && (

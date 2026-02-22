@@ -421,11 +421,6 @@ exports.getScheduledAppointments = async (req, res, next) => {
         $gte: startOfDay,
         $lte: endOfDay,
       };
-    } else {
-      // If no date is provided, show appointments from today onwards
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      query.appointmentDate = { $gte: today };
     }
 
     // Filter by doctor if provided
@@ -693,21 +688,22 @@ exports.getWalkInQueue = async (req, res, next) => {
   }
 };
 
-// Get all walk-in appointments (history/list) for a selected date
+// Get walk-in appointments list.
+// If date is provided, filter by that day; otherwise return all walk-ins.
 exports.getWalkInAppointments = async (req, res, next) => {
   try {
     const { date, doctorId } = req.query;
 
-    const targetDate = date ? new Date(date) : new Date();
-    const startOfDay = new Date(targetDate);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(targetDate);
-    endOfDay.setHours(23, 59, 59, 999);
+    const query = { appointmentType: 'walk-in' };
 
-    const query = {
-      appointmentType: 'walk-in',
-      appointmentDate: { $gte: startOfDay, $lte: endOfDay },
-    };
+    if (date) {
+      const targetDate = new Date(date);
+      const startOfDay = new Date(targetDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(targetDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      query.appointmentDate = { $gte: startOfDay, $lte: endOfDay };
+    }
 
     if (doctorId) {
       query.doctorId = doctorId;
@@ -724,10 +720,29 @@ exports.getWalkInAppointments = async (req, res, next) => {
       })
       .sort({ appointmentDate: -1, createdAt: -1 });
 
+    const appointmentIds = walkIns.map((appointment) => appointment._id);
+    const queueEntries = appointmentIds.length
+      ? await Queue.find({ appointmentId: { $in: appointmentIds } })
+        .select('appointmentId tokenNumber')
+        .lean()
+      : [];
+    const queueByAppointmentId = new Map(
+      queueEntries.map((entry) => [String(entry.appointmentId), entry])
+    );
+
+    const enrichedWalkIns = walkIns.map((appointment) => {
+      const appointmentObj = appointment.toObject();
+      const queueEntry = queueByAppointmentId.get(String(appointment._id));
+      return {
+        ...appointmentObj,
+        queueToken: queueEntry?.tokenNumber || appointmentObj.queueToken || null,
+      };
+    });
+
     res.status(200).json({
       success: true,
-      count: walkIns.length,
-      data: walkIns,
+      count: enrichedWalkIns.length,
+      data: enrichedWalkIns,
       message: 'Walk-in appointments retrieved successfully',
     });
   } catch (error) {
@@ -1067,7 +1082,7 @@ exports.updateBillingStatus = async (req, res, next) => {
       await Queue.findOneAndDelete({ appointmentId: billing.appointmentId });
       await Appointment.findByIdAndUpdate(
         billing.appointmentId,
-        { status: 'completed', queueToken: null, queuePosition: null, updatedAt: new Date() },
+        { status: 'completed', queuePosition: null, updatedAt: new Date() },
         { new: true }
       );
     }

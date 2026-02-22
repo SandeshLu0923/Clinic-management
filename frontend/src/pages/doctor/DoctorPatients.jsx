@@ -76,16 +76,19 @@ const DoctorPatients = () => {
 
       <Card>
         <div className="p-4 md:p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="relative md:col-span-2">
-              <FiSearch className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search patients..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 items-end">
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Search Patients</label>
+              <div className="relative">
+                <FiSearch className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search patients..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full h-12 pl-10 pr-4 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Visit Date Filter</label>
@@ -94,12 +97,12 @@ const DoctorPatients = () => {
                   type="date"
                   value={filterDate}
                   onChange={(e) => setFilterDate(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full h-12 px-3 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 />
                 <button
                   type="button"
                   onClick={() => setFilterDate('')}
-                  className="px-3 py-2 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                  className="h-12 px-3 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
                 >
                   All
                 </button>

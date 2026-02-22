@@ -105,17 +105,17 @@ const PatientBilling = () => {
       {success && <div className="p-3 bg-green-100 text-green-700 border border-green-300 rounded">{success}</div>}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-6 text-center">
-          <p className="text-gray-600">Total Amount</p>
-          <p className="text-3xl font-bold text-blue-600">{formatCurrency(totals.totalAmount)}</p>
+        <Card className="smart-card p-6 text-center">
+          <p className="smart-card-title">Total Amount</p>
+          <p className="smart-card-value text-blue-600">{formatCurrency(totals.totalAmount)}</p>
         </Card>
-        <Card className="p-6 text-center">
-          <p className="text-gray-600">Paid Amount</p>
-          <p className="text-3xl font-bold text-green-600">{formatCurrency(totals.paidAmount)}</p>
+        <Card className="smart-card p-6 text-center">
+          <p className="smart-card-title">Paid Amount</p>
+          <p className="smart-card-value text-green-600">{formatCurrency(totals.paidAmount)}</p>
         </Card>
-        <Card className="p-6 text-center">
-          <p className="text-gray-600">Pending Amount</p>
-          <p className="text-3xl font-bold text-red-600">{formatCurrency(totals.pendingAmount)}</p>
+        <Card className="smart-card p-6 text-center">
+          <p className="smart-card-title">Pending Amount</p>
+          <p className="smart-card-value text-red-600">{formatCurrency(totals.pendingAmount)}</p>
         </Card>
       </div>
 

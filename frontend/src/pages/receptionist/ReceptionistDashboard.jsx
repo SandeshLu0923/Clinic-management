@@ -414,29 +414,29 @@ const ReceptionistDashboard = () => {
   return (
     <div className="p-8">
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-        <Card>
-          <h2 className="text-lg font-semibold mb-2">Total Appointments</h2>
-          <p className="text-3xl font-bold text-blue-500">{report?.totalAppointments || 0}</p>
+        <Card className="smart-card">
+          <h2 className="smart-card-title mb-1">Total Appointments</h2>
+          <p className="smart-card-value text-blue-500">{report?.totalAppointments || 0}</p>
         </Card>
 
-        <Card>
-          <h2 className="text-lg font-semibold mb-2">Completed</h2>
-          <p className="text-3xl font-bold text-green-500">{report?.completedAppointments || 0}</p>
+        <Card className="smart-card">
+          <h2 className="smart-card-title mb-1">Completed</h2>
+          <p className="smart-card-value text-green-500">{report?.completedAppointments || 0}</p>
         </Card>
 
-        <Card>
-          <h2 className="text-lg font-semibold mb-2">Total Billing</h2>
-          <p className="text-3xl font-bold text-yellow-500">INR {Number(report?.totalBilling || 0).toLocaleString('en-IN')}</p>
+        <Card className="smart-card">
+          <h2 className="smart-card-title mb-1">Total Billing</h2>
+          <p className="smart-card-value text-yellow-500">INR {Number(report?.totalBilling || 0).toLocaleString('en-IN')}</p>
         </Card>
 
-        <Card>
-          <h2 className="text-lg font-semibold mb-2">Queue Count</h2>
-          <p className="text-3xl font-bold text-purple-500">{queue.length}</p>
+        <Card className="smart-card">
+          <h2 className="smart-card-title mb-1">Queue Count</h2>
+          <p className="smart-card-value text-purple-500">{queue.length}</p>
         </Card>
 
-        <Card>
-          <h2 className="text-lg font-semibold mb-2">Pending Transactions</h2>
-          <p className="text-3xl font-bold text-red-500">{pendingBillingCount}</p>
+        <Card className="smart-card">
+          <h2 className="smart-card-title mb-1">Pending Transactions</h2>
+          <p className="smart-card-value text-red-500">{pendingBillingCount}</p>
         </Card>
       </div>
 

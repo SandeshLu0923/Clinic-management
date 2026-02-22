@@ -9,8 +9,7 @@ const ReceptionistAppointments = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('date'); // 'all', 'date', or 'month'
-  const [filterValue, setFilterValue] = useState(new Date().toISOString().split('T')[0]);
+  const [filterValue, setFilterValue] = useState('');
   const [statusFilter, setStatusFilter] = useState('all'); // includes pending-bill
 
   // Modal states
@@ -25,7 +24,7 @@ const ReceptionistAppointments = () => {
 
   useEffect(() => {
     fetchAppointments({ showLoader: loading });
-  }, [filterValue, filterType, statusFilter]);
+  }, [filterValue, statusFilter]);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -33,7 +32,7 @@ const ReceptionistAppointments = () => {
     }, 10000);
 
     return () => clearInterval(intervalId);
-  }, [filterValue, filterType, statusFilter]);
+  }, [filterValue, statusFilter]);
 
   const fetchAppointments = async ({ showLoader = false } = {}) => {
     try {
@@ -42,7 +41,6 @@ const ReceptionistAppointments = () => {
       }
       setError('');
       
-      // Build parameters based on filter type
       let params = {};
       
       // Only add status filter if it's not 'all'
@@ -50,8 +48,7 @@ const ReceptionistAppointments = () => {
         params.status = statusFilter;
       }
       
-      // Always use specific date filtering when filterType is 'date'
-      if (filterType === 'date' && filterValue) {
+      if (filterValue) {
         params.date = filterValue;
       }
       
@@ -71,7 +68,7 @@ const ReceptionistAppointments = () => {
           patientPhone: patient.phone || 'N/A',
           doctorName: doctor.userId?.name || doctor.name || 'Unknown',
           doctorId: doctor._id,
-          date: appointment.appointmentDate ? appointment.appointmentDate.split('T')[0] : filterValue,
+          date: appointment.appointmentDate ? appointment.appointmentDate.split('T')[0] : 'N/A',
           time: appointment.startTime || 'N/A',
           endTime: appointment.endTime || 'N/A',
           status: appointment.status || 'scheduled',
@@ -83,18 +80,8 @@ const ReceptionistAppointments = () => {
         };
       });
 
-      // Filter by month if selected
-      let filtered = formattedAppointments;
-      if (filterType === 'month' && filterValue) {
-        const [year, month] = filterValue.split('-');
-        filtered = formattedAppointments.filter(apt => {
-          const aptDate = apt.date.substring(0, 7); // Get YYYY-MM
-          return aptDate === `${year}-${month}`;
-        });
-      }
-
       // Limit to 50 items
-      setAppointments(filtered.slice(0, 50));
+      setAppointments(formattedAppointments.slice(0, 50));
     } catch (err) {
       console.error('Error fetching appointments:', err);
       setError('Failed to load appointments');
@@ -244,12 +231,25 @@ const ReceptionistAppointments = () => {
               <input
                 type="date"
                 value={filterValue}
-                onChange={(e) => {
-                  setFilterValue(e.target.value);
-                  setFilterType('date');
-                }}
+                onChange={(e) => setFilterValue(e.target.value)}
                 className="w-full px-3 py-2 border rounded focus:outline-none focus:border-blue-500"
               />
+              <div className="flex gap-2 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setFilterValue('')}
+                  className="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                >
+                  Clear Date
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterValue(new Date().toISOString().split('T')[0])}
+                  className="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                >
+                  Today
+                </button>
+              </div>
             </div>
 
             {/* Status Filter */}

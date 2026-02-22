@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, Button, Loading } from '../../components/common/UI';
 import { doctorAPI } from '../../api/endpoints';
+import { FiEye, FiEdit2, FiMoreVertical } from 'react-icons/fi';
 
 const defaultPrescriptionRow = () => ({
   medicineName: '',
@@ -22,6 +23,9 @@ const DoctorPrescriptions = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [savingEdit, setSavingEdit] = useState(false);
+  const [openMenuRecordId, setOpenMenuRecordId] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewingRecord, setViewingRecord] = useState(null);
   const [editForm, setEditForm] = useState({
     diagnosis: '',
     symptoms: '',
@@ -104,6 +108,7 @@ const DoctorPrescriptions = () => {
   };
 
   const openEditModal = (record) => {
+    setOpenMenuRecordId(null);
     setEditingRecord(record);
     setEditForm({
       diagnosis: record.diagnosis || '',
@@ -120,6 +125,12 @@ const DoctorPrescriptions = () => {
         : [defaultPrescriptionRow()],
     });
     setShowEditModal(true);
+  };
+
+  const openViewModal = (record) => {
+    setOpenMenuRecordId(null);
+    setViewingRecord(record);
+    setShowViewModal(true);
   };
 
   const updatePrescriptionRow = (index, field, value) => {
@@ -242,70 +253,155 @@ const DoctorPrescriptions = () => {
             <p>No prescriptions found.</p>
           </Card>
         ) : (
-          filteredRecords.map((record) => (
-            <Card key={record._id} className="p-6">
-              <div className="flex justify-between items-start gap-3">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold">{record.patientName}</h3>
-                  <p className="text-sm text-gray-600">
-                    Visit: {new Date(record.visitDate || record.createdAt).toLocaleDateString()}
-                  </p>
-                  {record.diagnosis && (
-                    <p className="text-sm text-gray-700 mt-1">
-                      <span className="font-semibold">Diagnosis:</span> {record.diagnosis}
-                    </p>
-                  )}
-                  {(record.symptoms || []).length > 0 && (
-                    <p className="text-sm text-gray-700 mt-1">
-                      <span className="font-semibold">Symptoms:</span> {(record.symptoms || []).join(', ')}
-                    </p>
-                  )}
-
-                  <div className="mt-4 space-y-3">
-                    <div>
-                      <h4 className="font-medium text-sm">Medications</h4>
-                      {(record.prescription || []).length > 0 ? (
-                        <ul className="list-disc list-inside">
-                          {record.prescription.map((med, idx) => (
-                            <li key={`${record._id}-med-${idx}`} className="text-sm text-gray-700">
-                              {med.medicineName || 'Medicine'} {med.dosage ? `- ${med.dosage}` : ''} {med.frequency ? `(${med.frequency})` : ''}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-sm text-gray-500">No medications</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <h4 className="font-medium text-sm">Lab Tests</h4>
-                      {(record.labTests || []).length > 0 ? (
-                        <ul className="list-disc list-inside">
-                          {record.labTests.map((test, idx) => (
-                            <li key={`${record._id}-lab-${idx}`} className="text-sm text-gray-700 capitalize">
-                              {test.testName || 'Test'} {test.status ? `- ${test.status}` : ''}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-sm text-gray-500">No lab tests</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end gap-2">
-                  <span className={`px-3 py-1 rounded text-xs font-semibold capitalize ${statusBadgeClass(record.computedStatus)}`}>
-                    {statusLabel(record.computedStatus)}
-                  </span>
-                  <Button size="sm" variant="secondary" onClick={() => openEditModal(record)}>
-                    Edit
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          ))
+          <Card className="p-0 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead className="bg-gray-100 border-b">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Patient</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Visit Date</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Diagnosis</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Lab Tests</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Status</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredRecords.map((record) => (
+                    <tr key={record._id} className="border-b hover:bg-gray-50 align-top">
+                      <td className="px-4 py-3 text-sm font-medium whitespace-nowrap">{record.patientName}</td>
+                      <td className="px-4 py-3 text-sm whitespace-nowrap">
+                        {new Date(record.visitDate || record.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3 text-sm max-w-xs truncate">
+                        {record.diagnosis || 'N/A'}
+                      </td>
+                      <td className="px-4 py-3 text-sm max-w-xs">
+                        {(record.labTests || []).length > 0 ? (
+                          <div className="space-y-1">
+                            {(record.labTests || []).slice(0, 2).map((test, idx) => (
+                              <div key={`${record._id}-lab-${idx}`} className="truncate capitalize">
+                                {test.testName || 'Test'}{test.status ? ` - ${test.status}` : ''}
+                              </div>
+                            ))}
+                            {(record.labTests || []).length > 2 && (
+                              <div className="text-gray-500">+{(record.labTests || []).length - 2} more</div>
+                            )}
+                          </div>
+                        ) : (
+                          'No lab tests'
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        <span className={`px-3 py-1 rounded text-xs font-semibold capitalize whitespace-nowrap ${statusBadgeClass(record.computedStatus)}`}>
+                          {statusLabel(record.computedStatus)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        <div className="relative inline-block text-left">
+                          <button
+                            type="button"
+                            onClick={() => setOpenMenuRecordId(openMenuRecordId === record._id ? null : record._id)}
+                            className="p-2 rounded hover:bg-gray-200"
+                            aria-label="Open prescription actions"
+                          >
+                            <FiMoreVertical />
+                          </button>
+                          {openMenuRecordId === record._id && (
+                            <div className="absolute right-0 mt-1 w-28 bg-white border rounded shadow z-10">
+                              <button
+                                type="button"
+                                onClick={() => openViewModal(record)}
+                                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 inline-flex items-center gap-2"
+                              >
+                                <FiEye size={14} />
+                                View
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openEditModal(record)}
+                                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 inline-flex items-center gap-2"
+                              >
+                                <FiEdit2 size={14} />
+                                Edit
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
         )}
       </div>
+
+      {showViewModal && viewingRecord && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded border w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Prescription Details - {viewingRecord.patientName}</h2>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowViewModal(false);
+                  setViewingRecord(null);
+                }}
+                className="text-gray-600 text-xl"
+              >
+                X
+              </button>
+            </div>
+
+            <div className="space-y-4 text-sm">
+              <div><span className="font-semibold">Visit Date:</span> {new Date(viewingRecord.visitDate || viewingRecord.createdAt).toLocaleDateString()}</div>
+              <div><span className="font-semibold">Status:</span> {statusLabel(viewingRecord.computedStatus)}</div>
+              <div><span className="font-semibold">Diagnosis:</span> {viewingRecord.diagnosis || 'N/A'}</div>
+              <div>
+                <span className="font-semibold">Symptoms:</span>{' '}
+                {(viewingRecord.symptoms || []).length > 0 ? (viewingRecord.symptoms || []).join(', ') : 'N/A'}
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">Medications</h3>
+                {(viewingRecord.prescription || []).length > 0 ? (
+                  <ul className="list-disc list-inside space-y-1">
+                    {(viewingRecord.prescription || []).map((med, idx) => (
+                      <li key={`view-med-${idx}`}>
+                        {med.medicineName || 'Medicine'}
+                        {med.dosage ? ` - ${med.dosage}` : ''}
+                        {med.frequency ? ` (${med.frequency})` : ''}
+                        {med.duration ? ` for ${med.duration}` : ''}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-500">No medications</p>
+                )}
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">Lab Tests</h3>
+                {(viewingRecord.labTests || []).length > 0 ? (
+                  <ul className="list-disc list-inside space-y-1">
+                    {(viewingRecord.labTests || []).map((test, idx) => (
+                      <li key={`view-lab-${idx}`} className="capitalize">
+                        {test.testName || 'Test'}{test.status ? ` - ${test.status}` : ''}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-500">No lab tests</p>
+                )}
+              </div>
+
+              <div><span className="font-semibold">Notes:</span> {viewingRecord.notes || 'N/A'}</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showEditModal && editingRecord && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
