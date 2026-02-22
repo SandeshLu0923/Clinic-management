@@ -11,3 +11,5 @@ node_modules/
 *.log
 backend/logs/
 frontend/dist/
+
+PROJECT_REPORT.pdf
