@@ -10,6 +10,7 @@ node_modules/
 .idea/
 *.log
 backend/logs/
+backend/uploads/
 frontend/dist/
 
 PROJECT_REPORT.pdf

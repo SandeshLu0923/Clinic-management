@@ -13,7 +13,10 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(helmet());
+app.use(helmet({
+  // Allow frontend app (different origin/port) to embed uploaded files in previews.
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
 app.use(cors({
   origin: function (origin, callback) {
     const allowedOrigins = [
@@ -45,8 +48,13 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve uploaded files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Serve uploaded files.
+// Remove frame/embed-restrictive headers for static uploads so frontend previews work across localhost ports.
+app.use('/uploads', (req, res, next) => {
+  res.removeHeader('X-Frame-Options');
+  res.removeHeader('Content-Security-Policy');
+  next();
+}, express.static(path.join(__dirname, 'uploads')));
 
 // Rate limiting (lenient for development)
 const limiter = rateLimit({

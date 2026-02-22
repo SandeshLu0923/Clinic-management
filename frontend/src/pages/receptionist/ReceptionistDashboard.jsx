@@ -4,7 +4,6 @@ import { receptionistAPI } from '../../api/endpoints';
 
 const getTodayDate = () => new Date().toISOString().split('T')[0];
 const isValidDateInput = (value) => /^\d{4}-\d{2}-\d{2}$/.test(String(value || ''));
-const getSafeDate = (value) => (isValidDateInput(value) ? value : getTodayDate());
 const getId = (value) => (typeof value === 'string' ? value : value?._id);
 
 const ReceptionistDashboard = () => {
@@ -53,11 +52,11 @@ const ReceptionistDashboard = () => {
 
   const fetchData = async () => {
     try {
-      const safeDate = getSafeDate(selectedDate);
+      const dateParams = isValidDateInput(selectedDate) ? { date: selectedDate } : {};
       const [queueRes, billingsRes, reportRes, servicesRes] = await Promise.all([
-        receptionistAPI.getQueueStatus({ date: safeDate }),
+        receptionistAPI.getQueueStatus(dateParams),
         receptionistAPI.getBillings({}),
-        receptionistAPI.getDailyReport({ date: safeDate }),
+        receptionistAPI.getDailyReport(dateParams),
         receptionistAPI.getServices(),
       ]);
       setQueue(queueRes.data.data || []);
@@ -453,10 +452,26 @@ const ReceptionistDashboard = () => {
             <h2 className="text-xl font-semibold">Current Queue</h2>
             <input
               type="date"
-              value={getSafeDate(selectedDate)}
-              onChange={(e) => setSelectedDate(getSafeDate(e.target.value))}
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
               className="px-4 py-2 border rounded"
             />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setSelectedDate('')}
+                className="px-3 py-2 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+              >
+                Clear Date
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedDate(getTodayDate())}
+                className="px-3 py-2 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+              >
+                Today
+              </button>
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">

@@ -13,14 +13,20 @@ const DoctorMedicalDocuments = () => {
     fetchAccessibleDocuments();
   }, []);
 
-  const fileBaseUrl = useMemo(() => {
-    const apiBase = import.meta.env.VITE_API_URL || '/api';
-    const root = apiBase.endsWith('/api') ? apiBase.slice(0, -4) : apiBase;
-    if (root.startsWith('http://') || root.startsWith('https://')) {
-      return root.replace(/\/$/, '');
+  const backendOrigin = useMemo(() => {
+    const apiBase = String(import.meta.env.VITE_API_URL || '/api').trim();
+
+    // If API URL is absolute (e.g., http://localhost:5000/api), use only origin.
+    if (apiBase.startsWith('http://') || apiBase.startsWith('https://')) {
+      try {
+        return new URL(apiBase).origin;
+      } catch {
+        return window.location.origin;
+      }
     }
-    const normalized = root.startsWith('/') ? root : `/${root}`;
-    return `${window.location.origin}${normalized}`.replace(/\/$/, '');
+
+    // Relative API paths still point to same backend host in dev/proxy setups.
+    return window.location.origin;
   }, []);
 
   const fetchAccessibleDocuments = async () => {
@@ -53,8 +59,19 @@ const DoctorMedicalDocuments = () => {
   }, [documents]);
 
   const getDocumentUrl = (doc) => {
-    const filePath = doc?.fileUrl || '';
-    return encodeURI(`${fileBaseUrl}${filePath}`);
+    const rawPath = String(doc?.fileUrl || '').trim();
+    if (!rawPath) return '';
+
+    // Handle already absolute URLs.
+    if (rawPath.startsWith('http://') || rawPath.startsWith('https://')) {
+      return encodeURI(rawPath);
+    }
+
+    // Normalize to "/uploads/..." and guard against accidental "/api/uploads/..."
+    const normalizedPath = (rawPath.startsWith('/') ? rawPath : `/${rawPath}`)
+      .replace(/^\/api(?=\/)/, '');
+
+    return encodeURI(`${backendOrigin}${normalizedPath}`);
   };
 
   const isPdfDocument = (doc) => {
@@ -66,6 +83,29 @@ const DoctorMedicalDocuments = () => {
   const closePreview = () => {
     setShowPreview(false);
     setSelectedDoc(null);
+  };
+
+  const handleDownload = async (doc) => {
+    try {
+      const fileUrl = getDocumentUrl(doc);
+      const response = await fetch(fileUrl);
+      if (!response.ok) {
+        throw new Error(`Download failed with status ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = doc?.fileName || 'document';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(objectUrl);
+    } catch (downloadError) {
+      console.error('Download error:', downloadError);
+      setError('Failed to download document');
+    }
   };
 
   return (
@@ -137,14 +177,14 @@ const DoctorMedicalDocuments = () => {
                           <FiEye size={14} />
                           View
                         </button>
-                        <a
-                          href={getDocumentUrl(doc)}
-                          download
+                        <button
+                          type="button"
+                          onClick={() => handleDownload(doc)}
                           className="inline-flex items-center gap-1 bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700 transition text-sm"
                         >
                           <FiDownload size={14} />
                           Download
-                        </a>
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -197,14 +237,14 @@ const DoctorMedicalDocuments = () => {
             </div>
 
             <div className="p-6 border-t border-gray-200 flex gap-3">
-              <a
-                href={getDocumentUrl(selectedDoc)}
-                download
+              <button
+                type="button"
+                onClick={() => handleDownload(selectedDoc)}
                 className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
               >
                 <FiDownload />
                 Download
-              </a>
+              </button>
               <button onClick={closePreview} className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition">
                 Close
               </button>
