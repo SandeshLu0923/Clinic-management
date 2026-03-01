@@ -65,7 +65,12 @@ const matchesOriginPattern = (origin, allowedPattern) => {
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.some((allowedOrigin) => matchesOriginPattern(origin, allowedOrigin))) {
+    const isTrustedHostedFrontend = Boolean(origin) && (
+      /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin) ||
+      /^https:\/\/[a-z0-9-]+\.netlify\.app$/i.test(origin)
+    );
+
+    if (!origin || isTrustedHostedFrontend || allowedOrigins.some((allowedOrigin) => matchesOriginPattern(origin, allowedOrigin))) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
