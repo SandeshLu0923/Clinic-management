@@ -7,6 +7,17 @@
 [![Node.js](https://img.shields.io/badge/Node.js-v20.19+-green)]()
 [![License](https://img.shields.io/badge/license-MIT-blue)]()
 
+## Live Demo
+
+- Frontend: `https://clinic-management-frontend.vercel.app`
+- Backend health endpoint: deploy your backend and expose `/api/health` before sharing for evaluation.
+
+## Runtime Requirements
+
+- Node.js: `^20.19.0 || >=22.12.0`
+- npm: `>=10`
+- Recommended local default: use `.nvmrc` (`22.12.0`)
+
 ## 📋 Table of Contents
 - [Features](#-features-by-role)
 - [Project Structure](#-project-structure)

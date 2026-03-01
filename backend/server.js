@@ -7,9 +7,6 @@ const path = require('path');
 const connectDB = require('./config/database');
 const errorHandler = require('./middleware/errorHandler');
 
-// Connect to database
-connectDB();
-
 const app = express();
 
 // Middleware
@@ -123,16 +120,26 @@ app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-// Start server
-const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+const startServer = async () => {
+  try {
+    await connectDB();
 
-server.on('error', (error) => {
-  if (error.code === 'EADDRINUSE') {
-    console.error(`Port ${PORT} is already in use. Set a different PORT in backend/.env.`);
+    const PORT = process.env.PORT || 5000;
+    const server = app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+
+    server.on('error', (error) => {
+      if (error.code === 'EADDRINUSE') {
+        console.error(`Port ${PORT} is already in use. Set a different PORT in backend/.env.`);
+        process.exit(1);
+      }
+      throw error;
+    });
+  } catch (error) {
+    console.error(`Server startup failed: ${error.message}`);
     process.exit(1);
   }
-  throw error;
-});
+};
+
+startServer();

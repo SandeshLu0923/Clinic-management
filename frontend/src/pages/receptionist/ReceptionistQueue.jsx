@@ -525,10 +525,10 @@ const ReceptionistQueue = () => {
   };
 
   if (loading) {
-    return <div className="p-8 text-center">Loading queue...</div>;
+    return <div className="p-4 sm:p-6 lg:p-8 text-center">Loading queue...</div>;
   }
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Walk-in Management</h1>
         <p className="text-gray-600 text-sm mb-4">Queue and walk-in patient records are combined in one list with date range filters.</p>
@@ -547,18 +547,18 @@ const ReceptionistQueue = () => {
         </div>
       )}
 
-      <div className="flex gap-4 mb-8 items-center">
+      <div className="flex flex-wrap gap-3 mb-8 items-center">
         <input
           type="date"
           value={fromDate}
           onChange={(e) => setFromDate(e.target.value)}
-          className="px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+          className="px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
         />
         <input
           type="date"
           value={toDate}
           onChange={(e) => setToDate(e.target.value)}
-          className="px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+          className="px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
         />
         <button
           type="button"
@@ -583,14 +583,14 @@ const ReceptionistQueue = () => {
           value={searchToken}
           onChange={(e) => setSearchToken(e.target.value)}
           placeholder="Search token..."
-          className="px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 flex-1 max-w-sm"
+          className="px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 flex-1 min-w-[220px]"
         />
         <Button onClick={() => setShowRegisterModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
           Register Walk-in
         </Button>
       </div>
 
-      <div className="grid grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-8">
         <div className="smart-card p-5"><p className="smart-card-title">Total Walk-ins</p><p className="smart-card-value text-indigo-600 mt-1">{stats.total}</p></div>
         <div className="smart-card p-5"><p className="smart-card-title">Waiting</p><p className="smart-card-value text-blue-600 mt-1">{stats.waiting}</p></div>
         <div className="smart-card p-5"><p className="smart-card-title">In Consultation</p><p className="smart-card-value text-amber-600 mt-1">{stats.inConsultation}</p></div>
@@ -605,7 +605,7 @@ const ReceptionistQueue = () => {
         ) : (
           <div className="divide-y">
             {pendingWalkIns.map((item) => (
-              <div key={item.appointmentId} className="p-4 flex items-center justify-between gap-3">
+              <div key={item.appointmentId} className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="text-sm">
                   <div className="font-semibold">{item.patientName || 'Unknown'}</div>
                   <div className="text-gray-600">Phone: {item.patientPhone || 'N/A'}</div>

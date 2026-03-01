@@ -5,7 +5,7 @@ Backend API server for the Clinic Management System built with Node.js, Express,
 ## Getting Started
 
 ### Prerequisites
-- Node.js (v14 or higher)
+- Node.js (`^20.19.0 || >=22.12.0`)
 - MongoDB (local or cloud)
 - npm or yarn
 
@@ -25,8 +25,9 @@ cp .env.example .env
 - MongoDB URI
 - JWT secret
 - Email credentials
-- Twilio credentials
+- SMS provider + Twilio credentials (optional)
 - Cloudinary credentials
+- `ALLOW_START_WITHOUT_DB` (set `false` in production)
 
 ### Running the Server
 

@@ -4,6 +4,11 @@
 
 The Clinic Management System is designed with a multi-tier deployment architecture supporting development, staging, and production environments.
 
+### Live Access
+
+- Frontend: `https://clinic-management-frontend.vercel.app`
+- Backend: publish and share your public API URL ending with `/api/health` for evaluator verification.
+
 ### 1.1 Deployment Environments
 
 ```
@@ -181,6 +186,7 @@ sudo certbot --nginx -d api.clinicmanagement.com
 # Server Configuration
 NODE_ENV=production
 PORT=5000
+ALLOW_START_WITHOUT_DB=false
 
 # Database
 MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/clinic_prod
@@ -190,8 +196,10 @@ JWT_SECRET=your_very_secure_jwt_secret_key_min_32_chars
 JWT_EXPIRE=7d
 
 # Third Party Services
+SMS_PROVIDER=twilio
 TWILIO_ACCOUNT_SID=your_twilio_account_sid
 TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_PHONE_NUMBER=your_twilio_phone_number
 
 # Email Service
 SMTP_HOST=smtp.gmail.com

@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
+  if (!process.env.MONGODB_URI) {
+    throw new Error('MONGODB_URI is not defined');
+  }
+
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
@@ -12,13 +16,14 @@ const connectDB = async () => {
     return conn;
   } catch (error) {
     console.error(`Error connecting to MongoDB: ${error.message}`);
-    console.log('Starting server with limited functionality (no database)');
-    // Don't exit - allow server to start for development/testing
-    // In production, this should fail
-    if (process.env.NODE_ENV === 'production') {
-      process.exit(1);
+
+    const allowWithoutDb = String(process.env.ALLOW_START_WITHOUT_DB || 'false').toLowerCase() === 'true';
+    if (allowWithoutDb && process.env.NODE_ENV !== 'production') {
+      console.log('ALLOW_START_WITHOUT_DB=true: starting server in degraded mode (database unavailable).');
+      return null;
     }
-    return null;
+
+    throw error;
   }
 };
 
