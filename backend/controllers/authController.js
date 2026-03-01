@@ -252,20 +252,21 @@ exports.changePassword = async (req, res, next) => {
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = String(email || '').trim().toLowerCase();
 
-    logger.info(`Login attempt - Email: ${email}`);
+    logger.info(`Login attempt - Email: ${normalizedEmail}`);
 
     // Validate email and password
-    if (!email || !password) {
-      logger.warn(`Login failed: Missing credentials - Email: ${email}`);
+    if (!normalizedEmail || !password) {
+      logger.warn(`Login failed: Missing credentials - Email: ${normalizedEmail}`);
       return res.status(400).json({ message: 'Please provide email and password' });
     }
 
     // Check for user
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
 
     if (!user) {
-      logger.warn(`Login failed: User not found - Email: ${email}`);
+      logger.warn(`Login failed: User not found - Email: ${normalizedEmail}`);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
@@ -273,14 +274,14 @@ exports.login = async (req, res, next) => {
     const isMatch = await user.matchPassword(password);
 
     if (!isMatch) {
-      logger.warn(`Login failed: Invalid password - Email: ${email}`);
+      logger.warn(`Login failed: Invalid password - Email: ${normalizedEmail}`);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     // Create JWT token
     const token = generateToken(user._id);
 
-    logger.info(`User logged in successfully - ID: ${user._id}, Email: ${email}, Role: ${user.role}`);
+    logger.info(`User logged in successfully - ID: ${user._id}, Email: ${normalizedEmail}, Role: ${user.role}`);
 
     res.status(200).json({
       success: true,
