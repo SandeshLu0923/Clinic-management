@@ -16,9 +16,17 @@ const formatCurrency = (amount) => `INR ${Number(amount || 0).toLocaleString('en
 const formatStatus = (status) => String(status || '').replace('-', ' ');
 const getId = (value) => (typeof value === 'string' ? value : value?._id);
 const getTodayDate = () => new Date().toISOString().split('T')[0];
+const toDateOnlyTs = (value) => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  date.setHours(0, 0, 0, 0);
+  return date.getTime();
+};
 
 const ReceptionistQueue = () => {
-  const [selectedDate, setSelectedDate] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [queueList, setQueueList] = useState([]);
   const [walkInAppointments, setWalkInAppointments] = useState([]);
   const [pendingWalkIns, setPendingWalkIns] = useState([]);
@@ -52,7 +60,7 @@ const ReceptionistQueue = () => {
 
   useEffect(() => {
     fetchInitialData();
-  }, [selectedDate]);
+  }, []);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -61,7 +69,7 @@ const ReceptionistQueue = () => {
       fetchWalkInAppointments();
     }, 10000);
     return () => clearInterval(id);
-  }, [selectedDate]);
+  }, []);
 
   const fetchInitialData = async () => {
     await Promise.all([
@@ -78,8 +86,7 @@ const ReceptionistQueue = () => {
       if (showLoader) {
         setLoading(true);
       }
-      const params = selectedDate ? { date: selectedDate } : {};
-      const response = await receptionistAPI.getWalkInQueue(params);
+      const response = await receptionistAPI.getWalkInQueue();
       const list = (response.data.data || []).sort((a, b) => (a.position || 0) - (b.position || 0));
       setQueueList(list);
       setError('');
@@ -95,8 +102,7 @@ const ReceptionistQueue = () => {
 
   const fetchWalkInAppointments = async () => {
     try {
-      const params = selectedDate ? { date: selectedDate } : {};
-      const response = await receptionistAPI.getWalkInAppointments(params);
+      const response = await receptionistAPI.getWalkInAppointments();
       setWalkInAppointments(response.data.data || []);
     } catch (fetchError) {
       console.error(fetchError);
@@ -136,19 +142,68 @@ const ReceptionistQueue = () => {
 
   const labAndOtherServices = useMemo(() => services.filter((s) => s.category !== 'Consultation'), [services]);
 
-  const filteredQueue = useMemo(() => {
+  const mergedWalkInList = useMemo(() => {
+    const queueByAppointmentId = new Map(
+      queueList
+        .map((queueItem) => [getId(queueItem.appointmentId), queueItem])
+        .filter(([appointmentId]) => Boolean(appointmentId))
+    );
+
+    const mergedFromAppointments = walkInAppointments.map((appointment) => {
+      const appointmentId = getId(appointment);
+      const queueItem = queueByAppointmentId.get(appointmentId) || null;
+      if (queueItem) {
+        queueByAppointmentId.delete(appointmentId);
+      }
+      return {
+        appointment,
+        queueItem,
+      };
+    });
+
+    const queueOnlyRows = Array.from(queueByAppointmentId.values()).map((queueItem) => ({
+      appointment: queueItem.appointmentId || null,
+      queueItem,
+    }));
+
+    return [...mergedFromAppointments, ...queueOnlyRows];
+  }, [queueList, walkInAppointments]);
+
+  const filteredWalkIns = useMemo(() => {
     const query = searchToken.trim().toUpperCase();
-    if (!query) return queueList;
-    return queueList.filter((item) => String(item.tokenNumber || '').toUpperCase().includes(query));
-  }, [queueList, searchToken]);
+    const fromTs = toDateOnlyTs(fromDate);
+    const toTs = toDateOnlyTs(toDate);
+
+    return mergedWalkInList.filter((entry) => {
+      const tokenValue = String(entry.queueItem?.tokenNumber || entry.appointment?.queueToken || '').toUpperCase();
+      if (query && !tokenValue.includes(query)) {
+        return false;
+      }
+
+      const recordDateTs = toDateOnlyTs(
+        entry.appointment?.appointmentDate ||
+        entry.queueItem?.appointmentId?.appointmentDate ||
+        entry.appointment?.createdAt ||
+        entry.queueItem?.createdAt
+      );
+
+      if (fromTs && (!recordDateTs || recordDateTs < fromTs)) {
+        return false;
+      }
+      if (toTs && (!recordDateTs || recordDateTs > toTs)) {
+        return false;
+      }
+      return true;
+    });
+  }, [mergedWalkInList, searchToken, fromDate, toDate]);
 
   const stats = useMemo(() => ({
-    total: queueList.length,
-    waiting: queueList.filter((q) => q.status === 'waiting').length,
-    inConsultation: queueList.filter((q) => q.status === 'in-consultation').length,
-    pendingBilling: queueList.filter((q) => q.status === 'pending-transaction').length,
-    walkIn: queueList.filter((q) => q.appointmentId?.appointmentType === 'walk-in').length,
-  }), [queueList]);
+    total: filteredWalkIns.length,
+    waiting: filteredWalkIns.filter((row) => (row.queueItem?.status || row.appointment?.status) === 'waiting').length,
+    inConsultation: filteredWalkIns.filter((row) => (row.queueItem?.status || row.appointment?.status) === 'in-consultation').length,
+    pendingBilling: filteredWalkIns.filter((row) => (row.queueItem?.status || row.appointment?.status) === 'pending-transaction').length,
+    withToken: filteredWalkIns.filter((row) => Boolean(row.queueItem?.tokenNumber || row.appointment?.queueToken)).length,
+  }), [filteredWalkIns]);
 
   const handleRegisterWalkIn = async (event) => {
     event.preventDefault();
@@ -475,8 +530,8 @@ const ReceptionistQueue = () => {
   return (
     <div className="p-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Walk-in Queue Management</h1>
-        <p className="text-gray-600 text-sm mb-4">This list contains only walk-in patients. Scheduled appointments are managed separately.</p>
+        <h1 className="text-3xl font-bold mb-2">Walk-in Management</h1>
+        <p className="text-gray-600 text-sm mb-4">Queue and walk-in patient records are combined in one list with date range filters.</p>
       </div>
 
       {error && (
@@ -495,20 +550,30 @@ const ReceptionistQueue = () => {
       <div className="flex gap-4 mb-8 items-center">
         <input
           type="date"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
+          value={fromDate}
+          onChange={(e) => setFromDate(e.target.value)}
+          className="px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+        />
+        <input
+          type="date"
+          value={toDate}
+          onChange={(e) => setToDate(e.target.value)}
           className="px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
         />
         <button
           type="button"
-          onClick={() => setSelectedDate('')}
+          onClick={() => { setFromDate(''); setToDate(''); }}
           className="px-3 py-2 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
         >
-          Clear Date
+          Clear Dates
         </button>
         <button
           type="button"
-          onClick={() => setSelectedDate(getTodayDate())}
+          onClick={() => {
+            const today = getTodayDate();
+            setFromDate(today);
+            setToDate(today);
+          }}
           className="px-3 py-2 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
         >
           Today
@@ -530,7 +595,7 @@ const ReceptionistQueue = () => {
         <div className="smart-card p-5"><p className="smart-card-title">Waiting</p><p className="smart-card-value text-blue-600 mt-1">{stats.waiting}</p></div>
         <div className="smart-card p-5"><p className="smart-card-title">In Consultation</p><p className="smart-card-value text-amber-600 mt-1">{stats.inConsultation}</p></div>
         <div className="smart-card p-5"><p className="smart-card-title">Pending Bill</p><p className="smart-card-value text-orange-600 mt-1">{stats.pendingBilling}</p></div>
-        <div className="smart-card p-5"><p className="smart-card-title">Walk-in</p><p className="smart-card-value text-purple-600 mt-1">{stats.walkIn}</p></div>
+        <div className="smart-card p-5"><p className="smart-card-title">With Token</p><p className="smart-card-value text-purple-600 mt-1">{stats.withToken}</p></div>
       </div>
 
       <div className="bg-white border rounded mb-8">
@@ -569,89 +634,54 @@ const ReceptionistQueue = () => {
       </div>
 
       <div className="bg-white border rounded">
-        <div className="p-4 bg-gray-100 border-b font-semibold text-sm">Walkin-Queue</div>
+        <div className="p-4 bg-gray-100 border-b font-semibold text-sm">
+          Walk-in Patients and Queue {fromDate || toDate ? `(${fromDate || 'Any'} to ${toDate || 'Any'})` : '(All Dates)'}
+        </div>
         <div className="overflow-x-auto">
-          <div className="min-w-[980px]">
-            <div className="grid grid-cols-10 gap-3 p-4 bg-gray-100 border-b font-semibold text-sm">
-              <div>Token</div><div>Type</div><div>Patient</div><div>Doctor</div><div>Age</div><div>Gender</div><div>Contact</div><div>Reason</div><div>Status</div><div>Actions</div>
+          <div className="min-w-[1120px]">
+            <div className="grid grid-cols-11 gap-3 p-4 bg-gray-100 border-b font-semibold text-sm">
+              <div>Token</div><div>Type</div><div>Patient</div><div>Doctor</div><div>Date</div><div>Time</div><div>Age</div><div>Gender</div><div>Contact</div><div>Status</div><div>Actions</div>
             </div>
 
-            {filteredQueue.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">No patients in queue</div>
+            {filteredWalkIns.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">No walk-in patients found for the selected date range</div>
             ) : (
-              filteredQueue.map((patient, index) => (
-                <div key={patient._id} className={`grid grid-cols-10 gap-3 p-4 border-b ${index % 2 ? 'bg-gray-50' : 'bg-white'}`}>
-                  <div className="font-semibold">{patient.tokenNumber || 'N/A'}</div>
-                  <div className="capitalize">{patient.appointmentId?.appointmentType || 'N/A'}</div>
-                  <div>{patient.patientId?.name || patient.patientId?.userId?.name || 'Unknown'}</div>
-                  <div>{patient.doctorId?.userId?.name || 'N/A'}</div>
-                  <div>{patient.patientId?.age || 'N/A'}</div>
-                  <div className="capitalize">{patient.patientId?.gender || 'N/A'}</div>
-                  <div>{patient.patientId?.phone || patient.patientId?.userId?.phone || 'N/A'}</div>
-                  <div>{patient.appointmentId?.reason || 'N/A'}</div>
+              filteredWalkIns.map((entry, index) => {
+                const patient = entry.queueItem?.patientId || entry.appointment?.patientId;
+                const doctor = entry.queueItem?.doctorId || entry.appointment?.doctorId;
+                const appointment = entry.appointment || entry.queueItem?.appointmentId;
+                const rowStatus = entry.queueItem?.status || entry.appointment?.status;
+                const rowToken = entry.queueItem?.tokenNumber || entry.appointment?.queueToken || 'N/A';
+                const rowDate = appointment?.appointmentDate ? new Date(appointment.appointmentDate).toLocaleDateString() : 'N/A';
+                const rowTime = appointment?.startTime || 'N/A';
+                const rowReason = appointment?.reason || 'N/A';
+                const rowId = entry.queueItem?._id || appointment?._id || `${rowToken}-${index}`;
+                return (
+                <div key={rowId} className={`grid grid-cols-11 gap-3 p-4 border-b ${index % 2 ? 'bg-gray-50' : 'bg-white'}`}>
+                  <div className="font-semibold">{rowToken}</div>
+                  <div className="capitalize">{entry.queueItem ? 'in-queue' : 'registered'}</div>
+                  <div>{patient?.name || patient?.userId?.name || 'Unknown'}</div>
+                  <div>{doctor?.userId?.name || 'N/A'}</div>
+                  <div>{rowDate}</div>
+                  <div>{rowTime}</div>
+                  <div>{patient?.age || 'N/A'}</div>
+                  <div className="capitalize">{patient?.gender || 'N/A'}</div>
+                  <div>{patient?.phone || patient?.userId?.phone || 'N/A'}</div>
                   <div>
-                    <span className={`text-xs px-2 py-1 rounded capitalize ${patient.status === 'waiting' ? 'bg-blue-100 text-blue-800' : patient.status === 'in-consultation' ? 'bg-amber-100 text-amber-800' : patient.status === 'pending-transaction' ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800'}`}>
-                      {formatStatus(patient.status)}
+                    <span className={`text-xs px-2 py-1 rounded capitalize ${rowStatus === 'waiting' ? 'bg-blue-100 text-blue-800' : rowStatus === 'in-consultation' ? 'bg-amber-100 text-amber-800' : rowStatus === 'pending-transaction' ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800'}`}>
+                      {formatStatus(rowStatus)}
                     </span>
+                    <div className="mt-1 text-xs text-gray-500 truncate" title={rowReason}>{rowReason}</div>
                   </div>
                   <div className="space-x-2">
-                    <button type="button" onClick={() => handleCheckIn(patient)} disabled={patient.status !== 'waiting'} className="text-green-600 hover:underline text-xs disabled:text-gray-400 disabled:no-underline">Check In</button>
-                    <button type="button" onClick={() => { setSelectedPatient(patient); setShowViewModal(true); }} className="text-blue-600 hover:underline text-xs">View</button>
-                    <button type="button" onClick={() => printConsultationSheet(patient)} className="text-blue-600 hover:underline text-xs">Rx</button>
-                    <button type="button" onClick={() => openBillingModal(patient)} disabled={patient.status !== 'pending-transaction'} className="text-blue-600 hover:underline text-xs disabled:text-gray-400 disabled:no-underline">Bill</button>
-                    <button type="button" onClick={() => handleRemovePatient(patient._id, patient.patientId?.name || patient.patientId?.userId?.name || 'Patient')} className="text-red-600 hover:underline text-xs">Remove</button>
+                    <button type="button" onClick={() => entry.queueItem && handleCheckIn(entry.queueItem)} disabled={!entry.queueItem || rowStatus !== 'waiting'} className="text-green-600 hover:underline text-xs disabled:text-gray-400 disabled:no-underline">Check In</button>
+                    <button type="button" onClick={() => { setSelectedPatient(entry.queueItem || entry.appointment); setShowViewModal(true); }} className="text-blue-600 hover:underline text-xs">View</button>
+                    <button type="button" onClick={() => entry.queueItem && printConsultationSheet(entry.queueItem)} disabled={!entry.queueItem} className="text-blue-600 hover:underline text-xs disabled:text-gray-400 disabled:no-underline">Rx</button>
+                    <button type="button" onClick={() => entry.queueItem && openBillingModal(entry.queueItem)} disabled={!entry.queueItem || rowStatus !== 'pending-transaction'} className="text-blue-600 hover:underline text-xs disabled:text-gray-400 disabled:no-underline">Bill</button>
+                    <button type="button" onClick={() => entry.queueItem && handleRemovePatient(entry.queueItem._id, patient?.name || patient?.userId?.name || 'Patient')} disabled={!entry.queueItem} className="text-red-600 hover:underline text-xs disabled:text-gray-400 disabled:no-underline">Remove</button>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white border rounded mt-8">
-        <div className="p-4 bg-gray-100 border-b font-semibold text-sm">
-          Walk-in Patients List {selectedDate ? `(${selectedDate})` : '(All Dates)'}
-        </div>
-        <div className="overflow-x-auto">
-          <div className="min-w-[860px]">
-            <div className="grid grid-cols-8 gap-3 p-4 bg-gray-50 border-b font-semibold text-sm">
-              <div>Token</div><div>Patient</div><div>Doctor</div><div>Date</div><div>Time</div><div>Reason</div><div>Status</div><div>Actions</div>
-            </div>
-            {walkInAppointments.length === 0 ? (
-              <div className="p-4 text-sm text-gray-500">No walk-in patients found for selected date</div>
-            ) : (
-              walkInAppointments.map((apt, index) => (
-                <div key={apt._id} className={`grid grid-cols-8 gap-3 p-4 border-b text-sm ${index % 2 ? 'bg-gray-50' : 'bg-white'}`}>
-                  <div className="font-semibold">{apt.queueToken || 'N/A'}</div>
-                  <div>{apt.patientId?.name || apt.patientId?.userId?.name || 'Unknown'}</div>
-                  <div>{apt.doctorId?.userId?.name || 'N/A'}</div>
-                  <div>{apt.appointmentDate ? new Date(apt.appointmentDate).toLocaleDateString() : 'N/A'}</div>
-                  <div>{apt.startTime || 'N/A'}</div>
-                  <div>{apt.reason || 'N/A'}</div>
-                  <div>
-                    <span className={`text-xs px-2 py-1 rounded capitalize ${
-                      apt.status === 'completed'
-                        ? 'bg-green-100 text-green-800'
-                        : apt.status === 'pending-bill'
-                        ? 'bg-orange-100 text-orange-800'
-                        : apt.status === 'in-consultation'
-                        ? 'bg-amber-100 text-amber-800'
-                        : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {formatStatus(apt.status)}
-                    </span>
-                  </div>
-                  <div>
-                    <button
-                      type="button"
-                      onClick={() => { setSelectedPatient(apt); setShowViewModal(true); }}
-                      className="text-blue-600 hover:underline text-sm"
-                    >
-                      View
-                    </button>
-                  </div>
-                </div>
-              ))
+              )})
             )}
           </div>
         </div>
