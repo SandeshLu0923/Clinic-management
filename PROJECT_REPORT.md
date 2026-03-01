@@ -75,7 +75,7 @@ This project addresses these issues by moving operational workflows to structure
 **Software / Development Environment**:
 - OS: Windows 10/11, Linux, or macOS
 - Editor: Visual Studio Code
-- Runtime: Node.js (v16+)
+- Runtime: Node.js (v20.19+)
 - Package Manager: npm
 - Backend: Express.js
 - Frontend: React + Vite
@@ -245,3 +245,4 @@ The Clinic Management System successfully digitizes key clinic operations and re
 - `TESTING.md`
 - `OPTIMIZATION.md`
 - `REQUIREMENTS_COMPLIANCE.md`
+

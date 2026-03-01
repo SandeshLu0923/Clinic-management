@@ -398,7 +398,7 @@ exports.getQueueStatus = async (req, res, next) => {
       data: activeQueue,
     });
   } catch (error) {
-    console.error('Error in getQueueStatus:', error);
+    logger.error(`Get queue status error: ${error.message}`);
     next(error);
   }
 };

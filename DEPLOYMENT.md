@@ -13,7 +13,7 @@ The Clinic Management System is designed with a multi-tier deployment architectu
 ├──────────────────┤     ├──────────────────┤     ├──────────────────┤
 │ Local Machine    │     │ Heroku/Railway   │     │ AWS/Heroku       │
 │ MongoDB Local    │     │ MongoDB Atlas    │     │ MongoDB Atlas    │
-│ Port: 5000/5176 │     │ Staging Domain   │     │ Custom Domain    │
+│ Port: 5000/5173 │     │ Staging Domain   │     │ Custom Domain    │
 │ Load: 1-5 users │     │ Load: 10-50 users│     │ Load: 100+ users │
 └──────────────────┘     └──────────────────┘     └──────────────────┘
 ```
@@ -25,7 +25,7 @@ The Clinic Management System is designed with a multi-tier deployment architectu
 ### 2.1 Local Development Setup
 
 **Prerequisites**:
-- Node.js v16+ 
+- Node.js v20.19+ 
 - MongoDB Community Edition or MongoDB Atlas
 - npm or yarn
 
@@ -121,14 +121,14 @@ web: node server.js
 ssh -i your-key.pem ubuntu@your-server-ip
 
 # 2. Install Node.js
-curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
 # 3. Install PM2 globally
 sudo npm install -g pm2
 
 # 4. Clone repository
-git clone https://github.com/SandeshLu0923/clinic-management.git
+git clone https://github.com/SandeshLu0923/Clinic-management.git
 cd clinic-management/backend
 
 # 5. Install dependencies
@@ -181,21 +181,17 @@ sudo certbot --nginx -d api.clinicmanagement.com
 # Server Configuration
 NODE_ENV=production
 PORT=5000
-API_URL=https://api.clinicmanagement.com
 
 # Database
-DATABASE_URL=mongodb+srv://user:password@cluster.mongodb.net/clinic_prod
+MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/clinic_prod
 
 # JWT
 JWT_SECRET=your_very_secure_jwt_secret_key_min_32_chars
-JWT_EXPIRATION=24h
-REFRESH_TOKEN_SECRET=your_refresh_token_secret
-REFRESH_TOKEN_EXPIRATION=7d
+JWT_EXPIRE=7d
 
 # Third Party Services
 TWILIO_ACCOUNT_SID=your_twilio_account_sid
 TWILIO_AUTH_TOKEN=your_twilio_auth_token
-TWILIO_PHONE_NUMBER=+1234567890
 
 # Email Service
 SMTP_HOST=smtp.gmail.com
@@ -212,7 +208,8 @@ CLOUDINARY_API_SECRET=your_api_secret
 LOG_LEVEL=info
 
 # CORS
-CORS_ORIGIN=https://clinicmanagement.com
+FRONTEND_URL=https://clinic-management-frontend.vercel.app
+CORS_ORIGINS=https://clinic-management-frontend.vercel.app,https://*.vercel.app,https://clinic-management-frontend.netlify.app
 
 # Rate Limiting
 RATE_LIMIT_WINDOW_MS=15000
@@ -233,7 +230,7 @@ cd frontend
 npm install
 
 # Create .env file
-echo "VITE_API_BASE_URL=http://localhost:5000" > .env.local
+echo "VITE_API_URL=http://localhost:5000/api" > .env.local
 
 # Start development server
 npm run dev
@@ -262,22 +259,32 @@ npm install -g vercel
 vercel --prod
 
 # Configure environment
-# VITE_API_BASE_URL=https://api.clinicmanagement.com
+# VITE_API_URL=https://clinic-management-api.onrender.com/api
 ```
 
-#### Option 2: Netlify
+#### Option 2: Render (Static Site)
+
+Use these fields in Render:
+
+- Name: `clinic-management-frontend`
+- Root Directory: `frontend`
+- Build Command: `npm ci && npm run build`
+- Publish Directory: `dist`
+- Environment Variable: `VITE_API_URL=https://clinic-management-api.onrender.com/api`
+
+#### Option 3: Netlify
 
 ```bash
 # Build command: npm run build
 # Publish directory: dist
-# Environment variable: VITE_API_BASE_URL=https://api.clinicmanagement.com
+# Environment variable: VITE_API_URL=https://clinic-management-api.onrender.com/api
 
 # Deploy via CLI
 npm install -g netlify-cli
 netlify deploy --prod --dir=dist
 ```
 
-#### Option 3: AWS S3 + CloudFront
+#### Option 4: AWS S3 + CloudFront
 
 ```bash
 # Build the app
@@ -294,11 +301,45 @@ aws cloudfront create-invalidation --distribution-id YOUR_DIST_ID --paths "/*"
 
 **.env.production**:
 ```env
-VITE_API_BASE_URL=https://api.clinicmanagement.com
+VITE_API_URL=https://clinic-management-api.onrender.com/api
 VITE_APP_NAME=Clinic Management System
 VITE_APP_VERSION=1.0.0
 VITE_GOOGLE_ANALYTICS_ID=your_ga_id
 ```
+
+### 3.4 Deployment Fields Cheat Sheet (Render + Vercel)
+
+#### Render (Backend Web Service)
+- Service Type: `Web Service`
+- Name: `clinic-management-api`
+- Root Directory: `backend`
+- Runtime: `Node`
+- Build Command: `npm ci`
+- Start Command: `npm start`
+- Health Check Path: `/api/health`
+- Environment Variables:
+  - `NODE_ENV=production`
+  - `PORT=10000` (Render default)
+  - `MONGODB_URI=<your_mongodb_atlas_uri>`
+  - `JWT_SECRET=<strong_secret>`
+  - `JWT_EXPIRE=7d`
+  - `FRONTEND_URL=https://clinic-management-frontend.vercel.app`
+  - `CORS_ORIGINS=https://clinic-management-frontend.vercel.app,https://*.vercel.app`
+  - `SMTP_HOST=<smtp_host>`
+  - `SMTP_PORT=<smtp_port>`
+  - `SMTP_USER=<smtp_user>`
+  - `SMTP_PASS=<smtp_pass>`
+  - `TWILIO_ACCOUNT_SID=<sid>`
+  - `TWILIO_AUTH_TOKEN=<token>`
+
+#### Vercel (Frontend Project)
+- Framework Preset: `Vite`
+- Root Directory: `frontend`
+- Build Command: `npm run build`
+- Output Directory: `dist`
+- Install Command: `npm ci`
+- Environment Variables:
+  - `VITE_API_URL=https://clinic-management-api.onrender.com/api`
 
 ---
 
@@ -635,7 +676,7 @@ npm install -g artillery
 # Create load test script
 # load-test.yml
 config:
-  target: "https://api.clinicmanagement.com"
+  target: "https://clinic-management-api.onrender.com"
   phases:
     - duration: 60
       arrivalRate: 10
@@ -755,4 +796,8 @@ Maintenance Windows:
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | 2026-02-18 | Initial deployment documentation |
+
+
+
+
 

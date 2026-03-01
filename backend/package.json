@@ -11,6 +11,9 @@
     "test:watch": "jest --watch",
     "lint": "eslint ."
   },
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "keywords": [
     "clinic",
     "management",

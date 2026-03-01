@@ -1,11 +1,11 @@
 # Clinic Management System - Frontend
 
-Frontend React application for the Clinic Management System built with React 19, Vite, Redux Toolkit, and Tailwind CSS.
+Frontend React application for the Clinic Management System built with React 18, Vite, Redux Toolkit, and Tailwind CSS.
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js (v14 or higher)
+- Node.js (v20.19+)
 - npm or yarn
 
 ### Installation
@@ -75,7 +75,7 @@ frontend/
 
 ## Technologies Used
 
-- **React 19** - UI framework
+- **React 18** - UI framework
 - **Vite** - Build tool
 - **Redux Toolkit** - State management
 - **React Router** - Navigation
@@ -117,3 +117,4 @@ The build output will be in the `dist/` folder, ready for deployment.
 ## License
 
 MIT
+

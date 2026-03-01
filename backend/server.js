@@ -17,27 +17,55 @@ app.use(helmet({
   // Allow frontend app (different origin/port) to embed uploaded files in previews.
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
+
+const defaultAllowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+  'http://localhost:5176',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://localhost:3003',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+  'http://127.0.0.1:5175',
+  'http://127.0.0.1:5176',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3001',
+  'http://127.0.0.1:3002',
+  'http://127.0.0.1:3003',
+];
+
+const envAllowedOrigins = [
+  process.env.FRONTEND_URL,
+  ...(process.env.CORS_ORIGINS || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+].filter(Boolean);
+
+const allowedOrigins = Array.from(new Set([...defaultAllowedOrigins, ...envAllowedOrigins]));
+
+const matchesOriginPattern = (origin, allowedPattern) => {
+  if (origin === allowedPattern) {
+    return true;
+  }
+
+  if (!allowedPattern.includes('*')) {
+    return false;
+  }
+
+  const escapedPattern = allowedPattern
+    .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+    .replace(/\*/g, '.*');
+
+  return new RegExp(`^${escapedPattern}$`).test(origin);
+};
+
 app.use(cors({
   origin: function (origin, callback) {
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://localhost:5174',
-      'http://localhost:5175',
-      'http://localhost:5176',
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'http://localhost:3002',
-      'http://localhost:3003',
-      'http://127.0.0.1:5173',
-      'http://127.0.0.1:5174',
-      'http://127.0.0.1:5175',
-      'http://127.0.0.1:5176',
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:3001',
-      'http://127.0.0.1:3002',
-      'http://127.0.0.1:3003',
-    ];
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.some((allowedOrigin) => matchesOriginPattern(origin, allowedOrigin))) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));

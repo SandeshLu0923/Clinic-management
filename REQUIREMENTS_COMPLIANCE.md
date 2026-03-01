@@ -370,7 +370,7 @@ npm run dev  # Runs on http://localhost:5173
 
 **Architecture Diagram**:
 ```
-Frontend (React 19)
+Frontend (React 18)
      ↓ HTTP/REST
 API Gateway / Load Balancer
      ↓
@@ -551,7 +551,7 @@ npm test -- --watch   # Continuous testing
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/SandeshLu0923/clinic-management.git
+git clone https://github.com/SandeshLu0923/Clinic-management.git
 cd clinic-management
 
 # 2. Backend setup
@@ -639,11 +639,12 @@ This section is the latest repository audit summary.
 - Testability: validated with passing test/lint/build checks
 
 ### Pending Work Before Final Submission
-- Replace placeholder repository links (https://github.com/SandeshLu0923/clinic-management) with the actual public GitHub URL
 - Ensure final GitHub repository visibility is public
 - Submit final project report and repository URL through the required submission channel
 
 ### Logging Clarification
 - winston logging is implemented for core controller workflows.
 - Some non-controller paths (bootstrap/util scripts) still use console.*; if strict "every action" logging is enforced by reviewer, this is the only remaining hardening item.
+
+
 

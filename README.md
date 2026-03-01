@@ -2,9 +2,9 @@
 
 > **A comprehensive MERN stack clinic management system enabling seamless doctor-receptionist communication, efficient patient queue management, appointment booking, medical record maintenance, and integrated billing.**
 
-[![GitHub](https://img.shields.io/badge/GitHub-Clinic%20Management-blue)](https://github.com/SandeshLu0923/clinic-management)
+[![GitHub](https://img.shields.io/badge/GitHub-Clinic%20Management-blue)](https://github.com/SandeshLu0923/Clinic-management)
 [![Version](https://img.shields.io/badge/version-1.0.0-success)]()
-[![Node.js](https://img.shields.io/badge/Node.js-v16+-green)]()
+[![Node.js](https://img.shields.io/badge/Node.js-v20.19+-green)]()
 [![License](https://img.shields.io/badge/license-MIT-blue)]()
 
 ## 📋 Table of Contents
@@ -193,7 +193,7 @@ npm run dev
 
 | Layer | Technologies |
 |-------|--------------|
-| **Frontend** | React 19, Redux Toolkit, Tailwind CSS, Vite, Axios |
+| **Frontend** | React 18, Redux Toolkit, Tailwind CSS, Vite, Axios |
 | **Backend** | Node.js, Express.js, MongoDB, Mongoose |
 | **Authentication** | JWT + bcrypt |
 | **File Upload** | Multer, Cloudinary/AWS S3 |
@@ -342,7 +342,7 @@ The following comprehensive documents are available for understanding and mainta
 
 #### 📊 Architecture Overview
 ```
-Frontend (React 19 + Vite)
+Frontend (React 18 + Vite)
     ↓ REST API
 Backend (Node.js + Express)
     ├─ Controllers (Request handling)
@@ -362,8 +362,8 @@ External Services
 ```
 
 #### 🔧 Development Stack
-- **Runtime**: Node.js v16+
-- **Framework**: Express.js (backend), React 19 (frontend)
+- **Runtime**: Node.js v20.19+
+- **Framework**: Express.js (backend), React 18 (frontend)
 - **Database**: MongoDB with Mongoose ODM
 - **Testing**: Jest + Supertest
 - **Authentication**: JWT + bcrypt
@@ -458,14 +458,12 @@ For questions about:
   - Frontend build: pass
 
 ### Pending External Submission Tasks
-- Replace placeholder GitHub URL with actual public repository URL in:
-  - README.md
-  - DEPLOYMENT.md
-  - REQUIREMENTS_COMPLIANCE.md
 - Confirm repository visibility is public before final submission
 - Submit final repo link and final project report document to evaluator portal
 
 ### Notes for Requirement Interpretation
 - Database requirement in this project is fulfilled with MongoDB (approved for this submission).
 - Logging is implemented across core API workflows via winston; some utility/bootstrap paths still use console.* output.
+
+
 

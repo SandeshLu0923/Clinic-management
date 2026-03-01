@@ -570,83 +570,91 @@ const ReceptionistQueue = () => {
 
       <div className="bg-white border rounded">
         <div className="p-4 bg-gray-100 border-b font-semibold text-sm">Walkin-Queue</div>
-        <div className="grid grid-cols-10 gap-3 p-4 bg-gray-100 border-b font-semibold text-sm">
-          <div>Token</div><div>Type</div><div>Patient</div><div>Doctor</div><div>Age</div><div>Gender</div><div>Contact</div><div>Reason</div><div>Status</div><div>Actions</div>
-        </div>
-
-        {filteredQueue.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">No patients in queue</div>
-        ) : (
-          filteredQueue.map((patient, index) => (
-            <div key={patient._id} className={`grid grid-cols-10 gap-3 p-4 border-b ${index % 2 ? 'bg-gray-50' : 'bg-white'}`}>
-              <div className="font-semibold">{patient.tokenNumber || 'N/A'}</div>
-              <div className="capitalize">{patient.appointmentId?.appointmentType || 'N/A'}</div>
-              <div>{patient.patientId?.name || patient.patientId?.userId?.name || 'Unknown'}</div>
-              <div>{patient.doctorId?.userId?.name || 'N/A'}</div>
-              <div>{patient.patientId?.age || 'N/A'}</div>
-              <div className="capitalize">{patient.patientId?.gender || 'N/A'}</div>
-              <div>{patient.patientId?.phone || patient.patientId?.userId?.phone || 'N/A'}</div>
-              <div>{patient.appointmentId?.reason || 'N/A'}</div>
-              <div>
-                <span className={`text-xs px-2 py-1 rounded capitalize ${patient.status === 'waiting' ? 'bg-blue-100 text-blue-800' : patient.status === 'in-consultation' ? 'bg-amber-100 text-amber-800' : patient.status === 'pending-transaction' ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800'}`}>
-                  {formatStatus(patient.status)}
-                </span>
-              </div>
-              <div className="space-x-2">
-                <button type="button" onClick={() => handleCheckIn(patient)} disabled={patient.status !== 'waiting'} className="text-green-600 hover:underline text-xs disabled:text-gray-400 disabled:no-underline">Check In</button>
-                <button type="button" onClick={() => { setSelectedPatient(patient); setShowViewModal(true); }} className="text-blue-600 hover:underline text-xs">View</button>
-                <button type="button" onClick={() => printConsultationSheet(patient)} className="text-blue-600 hover:underline text-xs">Rx</button>
-                <button type="button" onClick={() => openBillingModal(patient)} disabled={patient.status !== 'pending-transaction'} className="text-blue-600 hover:underline text-xs disabled:text-gray-400 disabled:no-underline">Bill</button>
-                <button type="button" onClick={() => handleRemovePatient(patient._id, patient.patientId?.name || patient.patientId?.userId?.name || 'Patient')} className="text-red-600 hover:underline text-xs">Remove</button>
-              </div>
+        <div className="overflow-x-auto">
+          <div className="min-w-[980px]">
+            <div className="grid grid-cols-10 gap-3 p-4 bg-gray-100 border-b font-semibold text-sm">
+              <div>Token</div><div>Type</div><div>Patient</div><div>Doctor</div><div>Age</div><div>Gender</div><div>Contact</div><div>Reason</div><div>Status</div><div>Actions</div>
             </div>
-          ))
-        )}
+
+            {filteredQueue.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">No patients in queue</div>
+            ) : (
+              filteredQueue.map((patient, index) => (
+                <div key={patient._id} className={`grid grid-cols-10 gap-3 p-4 border-b ${index % 2 ? 'bg-gray-50' : 'bg-white'}`}>
+                  <div className="font-semibold">{patient.tokenNumber || 'N/A'}</div>
+                  <div className="capitalize">{patient.appointmentId?.appointmentType || 'N/A'}</div>
+                  <div>{patient.patientId?.name || patient.patientId?.userId?.name || 'Unknown'}</div>
+                  <div>{patient.doctorId?.userId?.name || 'N/A'}</div>
+                  <div>{patient.patientId?.age || 'N/A'}</div>
+                  <div className="capitalize">{patient.patientId?.gender || 'N/A'}</div>
+                  <div>{patient.patientId?.phone || patient.patientId?.userId?.phone || 'N/A'}</div>
+                  <div>{patient.appointmentId?.reason || 'N/A'}</div>
+                  <div>
+                    <span className={`text-xs px-2 py-1 rounded capitalize ${patient.status === 'waiting' ? 'bg-blue-100 text-blue-800' : patient.status === 'in-consultation' ? 'bg-amber-100 text-amber-800' : patient.status === 'pending-transaction' ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800'}`}>
+                      {formatStatus(patient.status)}
+                    </span>
+                  </div>
+                  <div className="space-x-2">
+                    <button type="button" onClick={() => handleCheckIn(patient)} disabled={patient.status !== 'waiting'} className="text-green-600 hover:underline text-xs disabled:text-gray-400 disabled:no-underline">Check In</button>
+                    <button type="button" onClick={() => { setSelectedPatient(patient); setShowViewModal(true); }} className="text-blue-600 hover:underline text-xs">View</button>
+                    <button type="button" onClick={() => printConsultationSheet(patient)} className="text-blue-600 hover:underline text-xs">Rx</button>
+                    <button type="button" onClick={() => openBillingModal(patient)} disabled={patient.status !== 'pending-transaction'} className="text-blue-600 hover:underline text-xs disabled:text-gray-400 disabled:no-underline">Bill</button>
+                    <button type="button" onClick={() => handleRemovePatient(patient._id, patient.patientId?.name || patient.patientId?.userId?.name || 'Patient')} className="text-red-600 hover:underline text-xs">Remove</button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="bg-white border rounded mt-8">
         <div className="p-4 bg-gray-100 border-b font-semibold text-sm">
           Walk-in Patients List {selectedDate ? `(${selectedDate})` : '(All Dates)'}
         </div>
-        <div className="grid grid-cols-8 gap-3 p-4 bg-gray-50 border-b font-semibold text-sm">
-          <div>Token</div><div>Patient</div><div>Doctor</div><div>Date</div><div>Time</div><div>Reason</div><div>Status</div><div>Actions</div>
-        </div>
-        {walkInAppointments.length === 0 ? (
-          <div className="p-4 text-sm text-gray-500">No walk-in patients found for selected date</div>
-        ) : (
-          walkInAppointments.map((apt, index) => (
-            <div key={apt._id} className={`grid grid-cols-8 gap-3 p-4 border-b text-sm ${index % 2 ? 'bg-gray-50' : 'bg-white'}`}>
-              <div className="font-semibold">{apt.queueToken || 'N/A'}</div>
-              <div>{apt.patientId?.name || apt.patientId?.userId?.name || 'Unknown'}</div>
-              <div>{apt.doctorId?.userId?.name || 'N/A'}</div>
-              <div>{apt.appointmentDate ? new Date(apt.appointmentDate).toLocaleDateString() : 'N/A'}</div>
-              <div>{apt.startTime || 'N/A'}</div>
-              <div>{apt.reason || 'N/A'}</div>
-              <div>
-                <span className={`text-xs px-2 py-1 rounded capitalize ${
-                  apt.status === 'completed'
-                    ? 'bg-green-100 text-green-800'
-                    : apt.status === 'pending-bill'
-                    ? 'bg-orange-100 text-orange-800'
-                    : apt.status === 'in-consultation'
-                    ? 'bg-amber-100 text-amber-800'
-                    : 'bg-blue-100 text-blue-800'
-                }`}>
-                  {formatStatus(apt.status)}
-                </span>
-              </div>
-              <div>
-                <button
-                  type="button"
-                  onClick={() => { setSelectedPatient(apt); setShowViewModal(true); }}
-                  className="text-blue-600 hover:underline text-sm"
-                >
-                  View
-                </button>
-              </div>
+        <div className="overflow-x-auto">
+          <div className="min-w-[860px]">
+            <div className="grid grid-cols-8 gap-3 p-4 bg-gray-50 border-b font-semibold text-sm">
+              <div>Token</div><div>Patient</div><div>Doctor</div><div>Date</div><div>Time</div><div>Reason</div><div>Status</div><div>Actions</div>
             </div>
-          ))
-        )}
+            {walkInAppointments.length === 0 ? (
+              <div className="p-4 text-sm text-gray-500">No walk-in patients found for selected date</div>
+            ) : (
+              walkInAppointments.map((apt, index) => (
+                <div key={apt._id} className={`grid grid-cols-8 gap-3 p-4 border-b text-sm ${index % 2 ? 'bg-gray-50' : 'bg-white'}`}>
+                  <div className="font-semibold">{apt.queueToken || 'N/A'}</div>
+                  <div>{apt.patientId?.name || apt.patientId?.userId?.name || 'Unknown'}</div>
+                  <div>{apt.doctorId?.userId?.name || 'N/A'}</div>
+                  <div>{apt.appointmentDate ? new Date(apt.appointmentDate).toLocaleDateString() : 'N/A'}</div>
+                  <div>{apt.startTime || 'N/A'}</div>
+                  <div>{apt.reason || 'N/A'}</div>
+                  <div>
+                    <span className={`text-xs px-2 py-1 rounded capitalize ${
+                      apt.status === 'completed'
+                        ? 'bg-green-100 text-green-800'
+                        : apt.status === 'pending-bill'
+                        ? 'bg-orange-100 text-orange-800'
+                        : apt.status === 'in-consultation'
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-blue-100 text-blue-800'
+                    }`}>
+                      {formatStatus(apt.status)}
+                    </span>
+                  </div>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => { setSelectedPatient(apt); setShowViewModal(true); }}
+                      className="text-blue-600 hover:underline text-sm"
+                    >
+                      View
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
       {showRegisterModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
