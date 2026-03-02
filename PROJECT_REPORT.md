@@ -220,6 +220,22 @@ Suggested screenshot folder:
   - `billing-process.png`
   - `patient-book-appointment.png`
 
+### 5.3 Evaluator Login Credentials
+Use the following accounts for evaluation (verified on current database state):
+
+| Role | Email | Password | Notes |
+|------|-------|----------|-------|
+| Receptionist | `receptionist@clinic.com` | `password123` | Full receptionist workflow access |
+| Doctor | `doctor1@clinic.com` | `password123` | Doctor dashboard, appointments, consultation flow |
+| Doctor | `doctor2@clinic.com` | `password123` | Alternate doctor account |
+| Patient | `sandesh@clinic.com` | `password123` | Patient booking and records flow |
+| Patient | `kcmanjula06@gmail.com` | `password123` | Additional patient account |
+| Patient | `abhishek@gmail.com` | `password123` | Additional patient account |
+
+Notes for evaluators:
+- If credentials are reset during local testing, run `backend/seeds/resetToMinimalStaff.js` to restore core staff accounts.
+- The project currently focuses on doctor, receptionist, and patient roles for UI evaluation.
+
 ---
 
 ## 6. Conclusion & Future Work
